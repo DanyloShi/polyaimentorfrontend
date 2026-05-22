@@ -24,6 +24,11 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [path, setPath] = useState(window.location.pathname);
 
+  const navigate = (nextPath) => {
+    window.history.pushState({}, "", nextPath);
+    setPath(window.location.pathname);
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -46,20 +51,17 @@ export default function App() {
     return () => window.removeEventListener("popstate", syncPath);
   }, []);
 
-  const navigate = (nextPath) => {
-    window.history.pushState({}, "", nextPath);
-    setPath(window.location.pathname);
-  };
+  useEffect(() => {
+    if (!ready || path !== "/") return;
+    if (session?.role === "admin") {
+      navigate("/admin/assistants");
+    } else if (session?.role === "teacher") {
+      navigate("/teacher");
+    }
+  }, [ready, session?.role, path]);
 
   const handleSessionChange = (nextSession) => {
     setSession(nextSession);
-    if (nextSession?.role === "teacher") {
-      navigate("/teacher");
-      return;
-    }
-    if (nextSession?.role === "admin") {
-      navigate("/admin/assistants");
-    }
   };
 
   const handleLogout = async () => {
@@ -161,5 +163,5 @@ export default function App() {
     return <TeacherDashboardPage session={session} onLogout={handleLogout} onNavigate={navigate} />;
   }
 
-  return <StudentGuestWorkspacePage session={session} onSessionChange={handleSessionChange} />;
+  return <StudentGuestWorkspacePage session={session} onSessionChange={handleSessionChange} onNavigate={navigate} />;
 }
