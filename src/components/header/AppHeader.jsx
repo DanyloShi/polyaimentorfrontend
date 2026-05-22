@@ -48,7 +48,7 @@ export default function AppHeader({ session, onLoginClick, onLogout, navItems = 
             {panelLabelByRole[role]}
           </button>
         ) : null}
-        {session?.authenticated ? (
+        {session?.authenticated && session?.role !== "guest" ? (
           <button className="button button--ghost" type="button" onClick={onLogout}>
             Вийти
           </button>
