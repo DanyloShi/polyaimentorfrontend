@@ -5,9 +5,9 @@ import ChatPanel from "../components/chat/ChatPanel.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
 import { getAssistantsForSession } from "../services/assistants.js";
 import { getConversationForAssistant, sendMessageToAssistant } from "../services/chat.js";
-import { createGuestSession, getGuestToken, logoutSession } from "../services/session.js";
+import { clearGuestToken, createGuestSession, getGuestToken, logoutSession } from "../services/session.js";
 
-export default function StudentGuestWorkspacePage({ session, onSessionChange }) {
+export default function StudentGuestWorkspacePage({ session, onSessionChange, onNavigate }) {
   const [assistants, setAssistants] = useState([]);
   const [activeAssistant, setActiveAssistant] = useState(null);
   const [conversation, setConversation] = useState(null);
@@ -50,6 +50,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange }) 
   }, [session]);
 
   const handleLogout = async () => {
+    clearGuestToken();
     onSessionChange(await logoutSession());
   };
 
@@ -76,6 +77,9 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange }) 
   };
 
   const handleSelectAssistant = (assistant) => {
+    if (!session?.authenticated && activeAssistant?.id !== assistant.id) {
+      clearGuestToken();
+    }
     setActiveAssistant(assistant);
     loadConversationForAssistant(assistant);
   };
@@ -84,12 +88,17 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange }) 
 
   return (
     <div className="workspace">
-      <AppHeader session={session} onLoginClick={() => setLoginOpen(true)} onLogout={handleLogout} />
+      <AppHeader
+        session={session}
+        onLoginClick={() => setLoginOpen(true)}
+        onLogout={handleLogout}
+        onNavigate={onNavigate}
+      />
       <div className="workspace__content">
         <AssistantSidebar
           assistants={assistants}
           activeAssistantId={activeAssistant?.id}
-          isStudent={session?.authenticated}
+          isStudent={canSeePrivateAssistants}
           onSelectAssistant={handleSelectAssistant}
         />
         <ChatPanel

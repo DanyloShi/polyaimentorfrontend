@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { buildGoogleLoginUrl } from "../../services/session.js";
+import { FcGoogle } from "react-icons/fc";
 
 export default function LoginModal({ open, onClose }) {
   if (!open) return null;
@@ -14,10 +15,10 @@ export default function LoginModal({ open, onClose }) {
         <button className="icon-button login-modal__close" type="button" aria-label="Close login modal" onClick={onClose}>
           <X size={18} />
         </button>
-        <h2>Sign In</h2>
-        <p>Sign in with Google to view assistants and continue working with your account.</p>
+        <h2>Увійти</h2>
+        <p>Увійти, щоб побачити доступні вам асистенти.</p>
         <button className="google-button" type="button" onClick={handleGoogleLogin}>
-          <span className="google-button__mark">G</span>
+          <FcGoogle size={18} />
           Continue with Google
         </button>
       </section>

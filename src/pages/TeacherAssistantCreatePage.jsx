@@ -45,7 +45,7 @@ export default function TeacherAssistantCreatePage({
 
   return (
     <div className="teacher-page">
-      <AppHeader session={session} onLogout={onLogout} />
+      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} />
 
       <main className="teacher-create-page">
         <button className="button button--ghost teacher-back teacher-back--compact" type="button" onClick={() => onNavigate(backPath)}>

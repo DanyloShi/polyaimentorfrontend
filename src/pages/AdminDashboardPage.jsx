@@ -350,7 +350,7 @@ function AdminModelsTab({ onNavigate }) {
                     </div>
                   </>
                 ) : (
-                  <p className="teacher-muted">Для local models ліміти не використовуються.</p>
+                  <p className="teacher-muted">Для локальних моделей ліміти не використовуються.</p>
                 )}
               </div>
             </article>

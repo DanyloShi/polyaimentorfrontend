@@ -107,7 +107,7 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
 
   return (
     <div className="teacher-page">
-      <AppHeader session={session} onLogout={onLogout} />
+      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} />
 
       <div className="teacher-page__content">
         <aside className="teacher-sidebar">

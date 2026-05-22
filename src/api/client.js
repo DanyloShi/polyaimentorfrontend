@@ -19,11 +19,13 @@ export async function readResponseBody(response) {
 
 export async function apiRequest(path, options = {}) {
   const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  const guestToken = getStoredGuestToken();
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...(guestToken ? { "X-Guest-Token": guestToken } : {}),
       ...(options.headers || {}),
     },
     ...options,

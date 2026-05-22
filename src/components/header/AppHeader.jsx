@@ -8,10 +8,21 @@ const roleLabels = {
 export default function AppHeader({ session, onLoginClick, onLogout, navItems = [], activeNav = "", onNavigate }) {
   const role = session?.role || "guest";
   const hasNav = navItems.length > 0;
+  const panelPathByRole = {
+    admin: "/admin/assistants",
+    teacher: "/teacher",
+  };
+  const panelLabelByRole = {
+    admin: "Admin panel",
+    teacher: "Teacher panel",
+  };
+  const panelPath = panelPathByRole[role];
 
   return (
     <header className="app-header">
-      <div className="app-header__brand">PolyAI Mentor</div>
+      <button className="app-header__brand" type="button" onClick={() => onNavigate?.("/")}>
+        PolyAI Mentor
+      </button>
 
       {hasNav ? (
         <nav className="app-header__nav" aria-label="Головна навігація">
@@ -32,6 +43,11 @@ export default function AppHeader({ session, onLoginClick, onLogout, navItems = 
 
       <div className="app-header__actions">
         <span className="app-header__role">{roleLabels[role] || role}</span>
+        {panelPath ? (
+          <button className="button button--ghost" type="button" onClick={() => onNavigate?.(panelPath)}>
+            {panelLabelByRole[role]}
+          </button>
+        ) : null}
         {session?.authenticated ? (
           <button className="button button--ghost" type="button" onClick={onLogout}>
             Вийти

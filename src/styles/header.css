@@ -9,9 +9,19 @@
 }
 
 .app-header__brand {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
   font-size: 25px;
   line-height: 1;
   font-weight: 800;
+}
+
+.app-header__brand:hover {
+  color: var(--color-accent);
 }
 
 .app-header__nav {

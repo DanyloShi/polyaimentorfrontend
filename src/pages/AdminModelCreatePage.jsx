@@ -68,7 +68,7 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate }) 
 
   return (
     <div className="teacher-page admin-page">
-      <AppHeader session={session} onLogout={onLogout} />
+      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} />
 
       <main className="teacher-create-page admin-model-create-page">
         <button className="button button--ghost teacher-back teacher-back--compact" type="button" onClick={() => onNavigate("/admin/models")}>
@@ -79,7 +79,7 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate }) 
         <section className="teacher-create-intro" aria-labelledby="admin-model-create-title">
           <p>Нова модель</p>
           <h1 id="admin-model-create-title">Створення моделі</h1>
-          <span>Форма відповідає `POST /api/models`: провайдер, назва, endpoint або local path, а для API-моделей ще й ліміти.</span>
+          <span>Форма відповідає: провайдер, назва, endpoint або local path, а для API-моделей ще й ліміти.</span>
         </section>
 
         <form className="teacher-create-form admin-model-form" onSubmit={handleSubmit}>

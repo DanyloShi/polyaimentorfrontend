@@ -41,6 +41,7 @@ export async function logoutSession() {
   } catch {
     // no-op
   }
+  clearGuestToken();
   return { authenticated: false, role: "guest", user_id: null };
 }
 
