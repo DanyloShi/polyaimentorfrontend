@@ -31,8 +31,21 @@
 }
 
 .chat-panel__loading {
+  margin: 18px auto 0;
+  max-width: 900px;
   color: var(--color-muted);
   font-size: 14px;
+}
+
+.chat-panel__error {
+  max-width: 900px;
+  margin: 0 auto 16px;
+  padding: 12px 14px;
+  border: 1px solid #e6c8c0;
+  border-radius: 16px;
+  background: #fff4f1;
+  color: #8a3d2f;
+  line-height: 1.5;
 }
 
 .message-list {

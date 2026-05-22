@@ -24,18 +24,22 @@ export default function ChatComposer({ disabled, onSendMessage }) {
     textarea.style.overflowY = textarea.scrollHeight > MAX_TEXTAREA_HEIGHT ? "auto" : "hidden";
   };
 
-  const submitMessage = () => {
+  const submitMessage = async () => {
     const message = value.trim();
     if (!message || disabled) return;
 
-    onSendMessage(message);
-    setValue("");
-    requestAnimationFrame(() => resizeTextarea(""));
+    try {
+      await onSendMessage(message);
+      setValue("");
+      requestAnimationFrame(() => resizeTextarea(""));
+    } catch {
+      // Keep the current value so the user can retry after the error is shown.
+    }
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    submitMessage();
+    await submitMessage();
   };
 
   const handleChange = (event) => {
@@ -44,10 +48,10 @@ export default function ChatComposer({ disabled, onSendMessage }) {
     resizeTextarea(nextValue);
   };
 
-  const handleKeyDown = (event) => {
+  const handleKeyDown = async (event) => {
     if (event.key !== "Enter" || event.shiftKey) return;
     event.preventDefault();
-    submitMessage();
+    await submitMessage();
   };
 
   return (

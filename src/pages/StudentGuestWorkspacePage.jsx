@@ -13,6 +13,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   const [conversation, setConversation] = useState(null);
   const [loadingChat, setLoadingChat] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [chatError, setChatError] = useState("");
 
   const loadConversationForAssistant = async (assistant) => {
     if (!assistant) {
@@ -21,9 +22,17 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
     }
 
     setLoadingChat(true);
+    setChatError("");
     try {
       const loadedConversation = await getConversationForAssistant(assistant.id);
       setConversation(loadedConversation);
+    } catch (error) {
+      setConversation({
+        conversation_id: null,
+        assistant_id: assistant.id,
+        messages: [],
+      });
+      setChatError(String(error.message || "Не вдалося завантажити чат."));
     } finally {
       setLoadingChat(false);
     }
@@ -57,6 +66,22 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   const handleSendMessage = async (message) => {
     if (!activeAssistant) return;
 
+    setChatError("");
+    const previousConversation = conversation;
+    const optimisticConversation = {
+      conversation_id: conversation?.conversation_id || null,
+      assistant_id: activeAssistant.id,
+      messages: [
+        ...(conversation?.messages || []),
+        {
+          message_id: `temp-${Date.now()}`,
+          role: "user",
+          content: message,
+        },
+      ],
+    };
+
+    setConversation(optimisticConversation);
     setLoadingChat(true);
 
     try {
@@ -71,12 +96,21 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
       });
 
       setConversation(updatedConversation);
+    } catch (error) {
+      setConversation(previousConversation || {
+        conversation_id: null,
+        assistant_id: activeAssistant.id,
+        messages: [],
+      });
+      setChatError(String(error.message || "Не вдалося надіслати повідомлення."));
+      throw error;
     } finally {
       setLoadingChat(false);
     }
   };
 
   const handleSelectAssistant = (assistant) => {
+    setChatError("");
     if (!session?.authenticated && activeAssistant?.id !== assistant.id) {
       clearGuestToken();
     }
@@ -103,6 +137,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
         />
         <ChatPanel
           assistant={activeAssistant}
+          error={chatError}
           loading={loadingChat}
           messages={conversation?.messages || []}
           onSendMessage={handleSendMessage}
