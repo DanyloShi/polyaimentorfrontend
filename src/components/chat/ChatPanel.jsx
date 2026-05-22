@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import ChatComposer from "./ChatComposer.jsx";
 import ChatHeader from "./ChatHeader.jsx";
 import EmptyChatState from "./EmptyChatState.jsx";
@@ -13,16 +14,25 @@ function ThinkingIndicator() {
   );
 }
 
-export default function ChatPanel({ assistant, messages, loading, isAssistantThinking, error, onSendMessage }) {
+export default function ChatPanel({ assistant, messages, loading, isAssistantThinking, onSendMessage }) {
+  const bodyRef = useRef(null);
+
+  useEffect(() => {
+    const container = bodyRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, isAssistantThinking]);
+
   return (
     <main className="chat-panel">
       <ChatHeader assistant={assistant} />
 
-      <div className="chat-panel__body">
-        {error ? <div className="chat-panel__error">{error}</div> : null}
-
+      <div ref={bodyRef} className="chat-panel__body">
         {messages.length ? <MessageList messages={messages} /> : <EmptyChatState assistant={assistant} />}
-
         {loading ? <div className="chat-panel__loading">Завантаження чату...</div> : null}
         {isAssistantThinking ? <ThinkingIndicator /> : null}
       </div>

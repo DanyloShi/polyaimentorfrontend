@@ -16,6 +16,16 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   const [loginOpen, setLoginOpen] = useState(false);
   const [chatError, setChatError] = useState("");
 
+  useEffect(() => {
+    if (!chatError) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setChatError("");
+    }, 3200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [chatError]);
+
   const loadConversationForAssistant = async (assistant) => {
     if (!assistant) {
       setConversation(null);
@@ -23,7 +33,6 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
     }
 
     setLoadingChat(true);
-    setChatError("");
 
     try {
       const loadedConversation = await getConversationForAssistant(assistant.id);
@@ -69,9 +78,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   };
 
   const handleSendMessage = async (message) => {
-    if (!activeAssistant || sendingMessage) return;
-
-    setChatError("");
+    if (!activeAssistant || sendingMessage) return false;
 
     const optimisticConversation = {
       conversation_id: conversation?.conversation_id || null,
@@ -111,8 +118,6 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   };
 
   const handleSelectAssistant = (assistant) => {
-    setChatError("");
-
     if (!session?.authenticated && activeAssistant?.id !== assistant.id) {
       clearGuestToken();
     }
@@ -131,6 +136,9 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
         onLogout={handleLogout}
         onNavigate={onNavigate}
       />
+
+      {chatError ? <div className="chat-toast">{chatError}</div> : null}
+
       <div className="workspace__content">
         <AssistantSidebar
           assistants={assistants}
@@ -140,13 +148,13 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
         />
         <ChatPanel
           assistant={activeAssistant}
-          error={chatError}
           loading={loadingChat}
           isAssistantThinking={sendingMessage}
           messages={conversation?.messages || []}
           onSendMessage={handleSendMessage}
         />
       </div>
+
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </div>
   );
