@@ -12,6 +12,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   const [activeAssistant, setActiveAssistant] = useState(null);
   const [conversation, setConversation] = useState(null);
   const [loadingChat, setLoadingChat] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [chatError, setChatError] = useState("");
 
@@ -23,6 +24,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
 
     setLoadingChat(true);
     setChatError("");
+
     try {
       const loadedConversation = await getConversationForAssistant(assistant.id);
       setConversation(loadedConversation);
@@ -44,15 +46,18 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
     async function loadInitialData() {
       const loadedAssistants = await getAssistantsForSession(session);
       if (cancelled) return;
+
       setAssistants(loadedAssistants);
       const firstAssistant = loadedAssistants[0] || null;
       setActiveAssistant(firstAssistant);
+
       if (firstAssistant) {
         await loadConversationForAssistant(firstAssistant);
       }
     }
 
     loadInitialData();
+
     return () => {
       cancelled = true;
     };
@@ -64,10 +69,10 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   };
 
   const handleSendMessage = async (message) => {
-    if (!activeAssistant) return;
+    if (!activeAssistant || sendingMessage) return;
 
     setChatError("");
-    const previousConversation = conversation;
+
     const optimisticConversation = {
       conversation_id: conversation?.conversation_id || null,
       assistant_id: activeAssistant.id,
@@ -82,7 +87,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
     };
 
     setConversation(optimisticConversation);
-    setLoadingChat(true);
+    setSendingMessage(true);
 
     try {
       if (!session?.authenticated && !getGuestToken()) {
@@ -96,24 +101,22 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
       });
 
       setConversation(updatedConversation);
+      return true;
     } catch (error) {
-      setConversation(previousConversation || {
-        conversation_id: null,
-        assistant_id: activeAssistant.id,
-        messages: [],
-      });
       setChatError(String(error.message || "Не вдалося надіслати повідомлення."));
-      throw error;
+      return false;
     } finally {
-      setLoadingChat(false);
+      setSendingMessage(false);
     }
   };
 
   const handleSelectAssistant = (assistant) => {
     setChatError("");
+
     if (!session?.authenticated && activeAssistant?.id !== assistant.id) {
       clearGuestToken();
     }
+
     setActiveAssistant(assistant);
     loadConversationForAssistant(assistant);
   };
@@ -139,6 +142,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
           assistant={activeAssistant}
           error={chatError}
           loading={loadingChat}
+          isAssistantThinking={sendingMessage}
           messages={conversation?.messages || []}
           onSendMessage={handleSendMessage}
         />

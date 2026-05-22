@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 const MAX_TEXTAREA_HEIGHT = 104;
 const MIN_TEXTAREA_HEIGHT = 48;
 
-export default function ChatComposer({ disabled, onSendMessage }) {
+export default function ChatComposer({ disabled, submitDisabled, onSendMessage }) {
   const [value, setValue] = useState("");
   const textareaRef = useRef(null);
 
@@ -26,14 +26,16 @@ export default function ChatComposer({ disabled, onSendMessage }) {
 
   const submitMessage = async () => {
     const message = value.trim();
-    if (!message || disabled) return;
+    if (!message || disabled || submitDisabled) return;
 
-    try {
-      await onSendMessage(message);
-      setValue("");
-      requestAnimationFrame(() => resizeTextarea(""));
-    } catch {
-      // Keep the current value so the user can retry after the error is shown.
+    setValue("");
+    requestAnimationFrame(() => resizeTextarea(""));
+
+    const ok = await onSendMessage(message);
+
+    if (!ok) {
+      setValue(message);
+      requestAnimationFrame(() => resizeTextarea(message));
     }
   };
 
@@ -56,17 +58,20 @@ export default function ChatComposer({ disabled, onSendMessage }) {
 
   return (
     <form className="chat-composer" onSubmit={handleSubmit}>
-      <textarea
-        ref={textareaRef}
-        aria-label="Повідомлення"
-        disabled={disabled}
-        placeholder="Напишіть своє запитання..."
-        rows={1}
-        value={value}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-      />
-      <button className="button button--send" type="submit" disabled={disabled || !value.trim()}>
+      <div className="chat-composer__field">
+        <textarea
+          ref={textareaRef}
+          aria-label="Повідомлення"
+          disabled={disabled}
+          placeholder="Напишіть своє запитання..."
+          rows={1}
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+        />
+      </div>
+
+      <button className="button button--send" type="submit" disabled={disabled || submitDisabled || !value.trim()}>
         <SendHorizontal size={18} />
         Надіслати
       </button>
