@@ -85,12 +85,12 @@ export async function getAdminStudentChatForAssistant(assistantId, studentId) {
 }
 
 export async function getAdminModels() {
-  const data = await apiRequest("/models");
+  const data = await apiRequest(endpoints.models);
   return data.items || [];
 }
 
 export async function createAdminModel(payload) {
-  return await apiRequest("/models", {
+  return await apiRequest(endpoints.models, {
     method: "POST",
     body: JSON.stringify(payload),
   });

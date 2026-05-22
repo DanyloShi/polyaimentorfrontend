@@ -18,7 +18,7 @@ export async function createTeacherAssistant({ title, modelId, isPublic }) {
 }
 
 export async function getAssistantCreateOptions() {
-  const data = await apiRequest("/models");
+  const data = await apiRequest(endpoints.models);
   return {
     models: data.items || [],
   };
