@@ -26,11 +26,40 @@ export async function createGuestSession(assistantId = null) {
 
 export async function getCurrentSession() {
   try {
-    return await apiRequest(endpoints.session);
+    const session = await apiRequest(endpoints.session);
+
+    if (session?.authenticated && session?.role !== "guest") {
+      clearGuestToken();
+    }
+
+    return session;
   } catch (error) {
-    if (String(error.message || "").includes("401")) {
+    const message = String(error.message || "");
+
+    if (message.includes("Provide either guest token or bearer/cookie token")) {
+      clearGuestToken();
+
+      try {
+        const session = await apiRequest(endpoints.session);
+
+        if (session?.authenticated && session?.role !== "guest") {
+          clearGuestToken();
+        }
+
+        return session;
+      } catch (retryError) {
+        if (String(retryError.message || "").includes("401")) {
+          return { authenticated: false, role: "guest", user_id: null };
+        }
+
+        return { authenticated: false, role: "guest", user_id: null };
+      }
+    }
+
+    if (message.includes("401")) {
       return { authenticated: false, role: "guest", user_id: null };
     }
+
     return { authenticated: false, role: "guest", user_id: null };
   }
 }
@@ -41,11 +70,14 @@ export async function logoutSession() {
   } catch {
     // no-op
   }
+
   clearGuestToken();
   return { authenticated: false, role: "guest", user_id: null };
 }
 
 export function buildGoogleLoginUrl() {
+  clearGuestToken();
+
   const url = new URL(GOOGLE_AUTH_START_URL, window.location.origin);
   url.searchParams.set("return_to", "/");
   return url.toString();
