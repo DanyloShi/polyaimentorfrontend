@@ -7,6 +7,8 @@ import { getAssistantsForSession } from "../services/assistants.js";
 import { getConversationForAssistant, sendMessageToAssistant } from "../services/chat.js";
 import { clearGuestToken, createGuestSession, getGuestToken, logoutSession } from "../services/session.js";
 
+const ACTIVE_ASSISTANT_KEY = "polyai_active_assistant_id";
+
 export default function StudentGuestWorkspacePage({ session, onSessionChange, onNavigate }) {
   const [assistants, setAssistants] = useState([]);
   const [activeAssistant, setActiveAssistant] = useState(null);
@@ -57,7 +59,13 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
       if (cancelled) return;
 
       setAssistants(loadedAssistants);
-      const firstAssistant = loadedAssistants[0] || null;
+
+      const savedAssistantId = window.localStorage.getItem(ACTIVE_ASSISTANT_KEY);
+      const firstAssistant =
+        loadedAssistants.find((assistant) => assistant.id === savedAssistantId) ||
+        loadedAssistants[0] ||
+        null;
+
       setActiveAssistant(firstAssistant);
 
       if (firstAssistant) {
@@ -73,6 +81,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   }, [session]);
 
   const handleLogout = async () => {
+    window.localStorage.removeItem(ACTIVE_ASSISTANT_KEY);
     clearGuestToken();
     onSessionChange(await logoutSession());
   };
@@ -118,10 +127,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   };
 
   const handleSelectAssistant = (assistant) => {
-    if (!session?.authenticated && activeAssistant?.id !== assistant.id) {
-      clearGuestToken();
-    }
-
+    window.localStorage.setItem(ACTIVE_ASSISTANT_KEY, assistant.id);
     setActiveAssistant(assistant);
     loadConversationForAssistant(assistant);
   };
