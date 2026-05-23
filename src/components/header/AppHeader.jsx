@@ -20,11 +20,18 @@ export default function AppHeader({
     admin: "/admin/assistants",
     teacher: "/teacher",
   };
+  const panelRootByRole = {
+    admin: "/admin",
+    teacher: "/teacher",
+  };
   const panelLabelByRole = {
     admin: "Admin panel",
     teacher: "Teacher panel",
   };
   const panelPath = panelPathByRole[role];
+  const panelRoot = panelRootByRole[role];
+  const isInsideOwnPanel = panelRoot ? window.location.pathname.startsWith(panelRoot) : false;
+  const shouldShowPanelShortcut = showPanelShortcut && panelPath && !isInsideOwnPanel;
 
   return (
     <header className="app-header">
@@ -51,7 +58,7 @@ export default function AppHeader({
 
       <div className="app-header__actions">
         <span className="app-header__role">{roleLabels[role] || role}</span>
-        {showPanelShortcut && panelPath ? (
+        {shouldShowPanelShortcut ? (
           <button className="button button--ghost" type="button" onClick={() => onNavigate?.(panelPath)}>
             {panelLabelByRole[role]}
           </button>
