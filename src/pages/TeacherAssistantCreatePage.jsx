@@ -8,39 +8,81 @@ export default function TeacherAssistantCreatePage({
   onLogout,
   onNavigate,
   createAssistant,
+  updateAssistant,
+  loadAssistant,
+  assistantId = "",
+  mode = "create",
   backPath,
   eyebrow = "Новий асистент",
   titleText = "Створення асистента",
-  description = "Задайте назву, модель і доступність. Документи та студентів можна буде додати після створення.",
+  description = "Задайте назву, модель і доступність. Документи та студентів можна буде додати після створення асистента.",
 }) {
+  const isEdit = mode === "edit";
   const [title, setTitle] = useState("");
   const [modelId, setModelId] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [models, setModels] = useState([]);
+  const [loading, setLoading] = useState(isEdit);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadOptions() {
-      const options = await getAssistantCreateOptions();
+    async function loadData() {
+      setLoading(isEdit);
+
+      const [options, assistant] = await Promise.all([
+        getAssistantCreateOptions(),
+        isEdit && assistantId && loadAssistant ? loadAssistant(assistantId) : Promise.resolve(null),
+      ]);
+
       if (cancelled) return;
-      setModels(options.models);
-      setModelId(options.models[0]?.id || "");
+
+      setModels(options.models || []);
+
+      if (assistant) {
+        setTitle(assistant.title || "");
+        setModelId(assistant.model_id || options.models[0]?.id || "");
+        setIsPublic(Boolean(assistant.is_public));
+      } else {
+        setModelId(options.models[0]?.id || "");
+      }
+
+      setLoading(false);
     }
 
-    loadOptions();
+    loadData();
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [assistantId, isEdit, loadAssistant]);
 
   const submit = async (event) => {
     event.preventDefault();
     const normalizedTitle = title.trim();
-    if (!normalizedTitle || !modelId) return;
+    if (!normalizedTitle || !modelId || submitting) return;
 
-    await createAssistant({ title: normalizedTitle, modelId, isPublic });
-    onNavigate(backPath);
+    setSubmitting(true);
+    try {
+      if (isEdit) {
+        await updateAssistant(assistantId, {
+          title: normalizedTitle,
+          modelId,
+          isPublic,
+        });
+      } else {
+        await createAssistant({
+          title: normalizedTitle,
+          modelId,
+          isPublic,
+        });
+      }
+
+      onNavigate(backPath);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -60,6 +102,8 @@ export default function TeacherAssistantCreatePage({
         </section>
 
         <form className="teacher-create-form" onSubmit={submit}>
+          {loading ? <p className="teacher-muted">Завантаження...</p> : null}
+
           <label>
             Назва
             <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Наприклад: Математичний асистент" />
@@ -67,7 +111,7 @@ export default function TeacherAssistantCreatePage({
 
           <label>
             Модель
-            <select value={modelId} onChange={(event) => setModelId(event.target.value)}>
+            <select value={modelId} onChange={(event) => setModelId(event.target.value)} disabled={loading}>
               {models.map((model) => (
                 <option key={model.id} value={model.id}>
                   {model.model_name} ({model.provider})
@@ -81,8 +125,8 @@ export default function TeacherAssistantCreatePage({
             Зробити асистента публічним
           </label>
 
-          <button className="button button--dark teacher-create-submit" type="submit" disabled={!title.trim() || !modelId}>
-            Створити асистента
+          <button className="button button--dark teacher-create-submit" type="submit" disabled={loading || submitting || !title.trim() || !modelId}>
+            {submitting ? (isEdit ? "Збереження..." : "Створення...") : isEdit ? "Зберегти зміни" : "Створити асистента"}
           </button>
         </form>
       </main>

@@ -1,10 +1,13 @@
-import { ChevronRight, MessageSquareText, Plus, Search, ShieldCheck, Trash2, Upload, UserPlus, X } from "lucide-react";
+import { ChevronRight, MessageSquareText, Pencil, Plus, Search, ShieldCheck, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import DeleteAssistantModal from "../components/assistants/DeleteAssistantModal.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
 import {
   addStudentToAdminAssistant,
   assignUserRole,
+  deleteAdminAssistant,
   deleteAdminAssistantDocument,
+  getAdminAssistantById,
   getAdminAssistantDocuments,
   getAdminAssistants,
   getAdminAssistantStudents,
@@ -45,6 +48,21 @@ function AdminAssistantsTab({ onNavigate }) {
   const [studentQuery, setStudentQuery] = useState("");
   const [studentResults, setStudentResults] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [deletingAssistant, setDeletingAssistant] = useState(null);
+  const [deletingAssistantPending, setDeletingAssistantPending] = useState(false);
+
+  const reloadAssistants = async (preferredAssistantId = null) => {
+    const loadedAssistants = await getAdminAssistants();
+    const nextActiveAssistant =
+      loadedAssistants.find((assistant) => assistant.id === preferredAssistantId) ||
+      loadedAssistants[0] ||
+      null;
+
+    setAssistants(loadedAssistants);
+    setActiveAssistant(nextActiveAssistant);
+    await loadAssistantDetails(nextActiveAssistant);
+  };
 
   const loadAssistantDetails = async (assistant) => {
     if (!assistant) {
@@ -121,6 +139,21 @@ function AdminAssistantsTab({ onNavigate }) {
     setStudents(await removeStudentFromAdminAssistant(activeAssistant.id, studentId));
   };
 
+  const confirmDeleteAssistant = async () => {
+    if (!deletingAssistant) return;
+
+    setDeletingAssistantPending(true);
+    try {
+      await deleteAdminAssistant(deletingAssistant.id);
+
+      const preferredAssistantId = activeAssistant?.id === deletingAssistant.id ? null : activeAssistant?.id || null;
+      await reloadAssistants(preferredAssistantId);
+      setDeletingAssistant(null);
+    } finally {
+      setDeletingAssistantPending(false);
+    }
+  };
+
   const openStudentChat = (student) => {
     if (!activeAssistant) return;
     const params = new URLSearchParams({
@@ -143,14 +176,20 @@ function AdminAssistantsTab({ onNavigate }) {
 
         <div className="teacher-assistant-list">
           {assistants.map((assistant) => (
-            <button
-              className={`teacher-assistant ${assistant.id === activeAssistant?.id ? "teacher-assistant--active" : ""}`}
-              key={assistant.id}
-              type="button"
-              onClick={() => selectAssistant(assistant)}
-            >
-              {assistant.title}
-            </button>
+            <div className={`teacher-assistant-row ${assistant.id === activeAssistant?.id ? "teacher-assistant-row--active" : ""}`} key={assistant.id}>
+              <button className="teacher-assistant" type="button" onClick={() => selectAssistant(assistant)}>
+                {assistant.title}
+              </button>
+
+              <div className="teacher-assistant__actions">
+                <button className="icon-button" type="button" aria-label="Редагувати асистента" onClick={() => onNavigate(`/admin/assistants/${assistant.id}/edit`)}>
+                  <Pencil size={16} />
+                </button>
+                <button className="icon-button teacher-icon-button--danger" type="button" aria-label="Видалити асистента" onClick={() => setDeletingAssistant(assistant)}>
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </aside>
@@ -259,6 +298,8 @@ function AdminAssistantsTab({ onNavigate }) {
 
 function AdminModelsTab({ onNavigate }) {
   const [models, setModels] = useState([]);
+  const [deletingModel, setDeletingModel] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -277,87 +318,133 @@ function AdminModelsTab({ onNavigate }) {
   const enabledCount = models.filter((model) => model.is_enabled).length;
   const apiCount = models.filter((model) => model.provider === "api").length;
 
+  const confirmDelete = async () => {
+    if (!deletingModel) return;
+
+    setDeleting(true);
+    try {
+      await deleteAdminModel(deletingModel.id);
+      setModels((current) => current.filter((model) => model.id !== deletingModel.id));
+      setDeletingModel(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <main className="admin-panel admin-models-panel">
-      <header className="admin-panel__header admin-panel__header--split">
-        <div>
-          <h1>Каталог моделей</h1>
-        </div>
-        <button className="button button--dark" type="button" onClick={() => onNavigate("/admin/models/new")}>
-          <Plus size={17} />
-          Нова модель
-        </button>
-      </header>
+    <>
+      <main className="admin-panel admin-models-panel">
+        <header className="admin-panel__header admin-panel__header--split">
+          <div>
+            <h1>Каталог моделей</h1>
+          </div>
+          <button className="button button--dark" type="button" onClick={() => onNavigate("/admin/models/new")}>
+            <Plus size={17} />
+            Нова модель
+          </button>
+        </header>
 
-      <section className="admin-models-shell">
-        <div className="admin-models-summary">
-          <article className="admin-stat-card">
-            <span>Усього моделей</span>
-            <strong>{models.length}</strong>
-          </article>
-          <article className="admin-stat-card">
-            <span>Активні</span>
-            <strong>{enabledCount}</strong>
-          </article>
-          <article className="admin-stat-card">
-            <span>API provider</span>
-            <strong>{apiCount}</strong>
-          </article>
-        </div>
-
-        <div className="admin-models-grid">
-          {models.map((model) => (
-            <article className="admin-model-card admin-model-card--detailed" key={model.id}>
-              <div className="admin-model-card__head">
-                <div>
-                  <strong>{model.model_name}</strong>
-                  <span>{model.provider}</span>
-                </div>
-                <span className={`admin-model-card__status ${model.is_enabled ? "" : "admin-model-card__status--muted"}`}>
-                  {model.is_enabled ? "enabled" : "disabled"}
-                </span>
-              </div>
-
-              <div className="admin-model-card__body">
-                <div className="admin-model-line">
-                  <span>Endpoint</span>
-                  <strong>{model.endpoint || "not set"}</strong>
-                </div>
-                <div className="admin-model-line">
-                  <span>Local path</span>
-                  <strong>{model.local_path || "not set"}</strong>
-                </div>
-              </div>
-
-              <div className="admin-model-limits-preview">
-                {model.limits ? (
-                  <>
-                    <div>
-                      <span>Total</span>
-                      <strong>{model.limits.total}</strong>
-                    </div>
-                    <div>
-                      <span>Guests</span>
-                      <strong>{model.limits.guests}</strong>
-                    </div>
-                    <div>
-                      <span>Students</span>
-                      <strong>{model.limits.students}</strong>
-                    </div>
-                    <div>
-                      <span>Admins</span>
-                      <strong>{model.limits.admins}</strong>
-                    </div>
-                  </>
-                ) : (
-                  <p className="teacher-muted">Для локальних моделей ліміти не використовуються.</p>
-                )}
-              </div>
+        <section className="admin-models-shell">
+          <div className="admin-models-summary">
+            <article className="admin-stat-card">
+              <span>Усього моделей</span>
+              <strong>{models.length}</strong>
             </article>
-          ))}
+            <article className="admin-stat-card">
+              <span>Активні</span>
+              <strong>{enabledCount}</strong>
+            </article>
+            <article className="admin-stat-card">
+              <span>API provider</span>
+              <strong>{apiCount}</strong>
+            </article>
+          </div>
+
+          <div className="admin-models-grid">
+            {models.map((model) => (
+              <article className="admin-model-card admin-model-card--detailed" key={model.id}>
+                <div className="admin-model-card__head">
+                  <div>
+                    <strong>{model.model_name}</strong>
+                    <span>{model.provider}</span>
+                  </div>
+                  <span className={`admin-model-card__status ${model.is_enabled ? "" : "admin-model-card__status--muted"}`}>
+                    {model.is_enabled ? "enabled" : "disabled"}
+                  </span>
+                </div>
+
+                <div className="admin-model-card__body">
+                  <div className="admin-model-line">
+                    <span>Endpoint</span>
+                    <strong>{model.endpoint || "not set"}</strong>
+                  </div>
+                  <div className="admin-model-line">
+                    <span>Local path</span>
+                    <strong>{model.local_path || "not set"}</strong>
+                  </div>
+                </div>
+
+                <div className="admin-model-limits-preview">
+                  {model.limits ? (
+                    <>
+                      <div>
+                        <span>Total</span>
+                        <strong>{model.limits.total}</strong>
+                      </div>
+                      <div>
+                        <span>Guests</span>
+                        <strong>{model.limits.guests}</strong>
+                      </div>
+                      <div>
+                        <span>Students</span>
+                        <strong>{model.limits.students}</strong>
+                      </div>
+                      <div>
+                        <span>Admins</span>
+                        <strong>{model.limits.admins}</strong>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="teacher-muted">Для локальних моделей ліміти не використовуються.</p>
+                  )}
+                </div>
+
+                <div className="admin-model-card__actions">
+                  <button className="button button--ghost" type="button" onClick={() => onNavigate(`/admin/models/${model.id}/edit`)}>
+                    Редагувати
+                  </button>
+                  <button className="icon-button admin-icon-button--danger" type="button" aria-label="Видалити модель" onClick={() => setDeletingModel(model)}>
+                    <Trash2 size={17} />
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      {deletingModel ? (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => !deleting && setDeletingModel(null)}>
+          <section className="login-modal admin-delete-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="icon-button login-modal__close" type="button" aria-label="Закрити" onClick={() => setDeletingModel(null)} disabled={deleting}>
+              <X size={18} />
+            </button>
+            <h2>Видалити модель?</h2>
+            <p>
+              Модель <strong>{deletingModel.model_name}</strong> буде видалена назавжди. Цю дію не можна скасувати.
+            </p>
+            <div className="admin-delete-modal__actions">
+              <button className="button button--ghost" type="button" onClick={() => setDeletingModel(null)} disabled={deleting}>
+                Скасувати
+              </button>
+              <button className="button admin-button--danger" type="button" onClick={confirmDelete} disabled={deleting}>
+                {deleting ? "Видалення..." : "Видалити модель"}
+              </button>
+            </div>
+          </section>
         </div>
-      </section>
-    </main>
+      ) : null}
+    </>
   );
 }
 

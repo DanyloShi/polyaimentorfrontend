@@ -1,9 +1,11 @@
-import { Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
+import { Pencil, Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import DeleteAssistantModal from "../components/assistants/DeleteAssistantModal.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
 import {
   addStudentToAssistant,
   deleteAssistantDocument,
+  deleteTeacherAssistant,
   getAssistantDocuments,
   getAssistantStudents,
   getTeacherAssistants,
@@ -29,6 +31,21 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
   const [studentQuery, setStudentQuery] = useState("");
   const [studentResults, setStudentResults] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [deletingAssistant, setDeletingAssistant] = useState(null);
+  const [deletingAssistantPending, setDeletingAssistantPending] = useState(false);
+
+  const reloadAssistants = async (preferredAssistantId = null) => {
+    const loadedAssistants = await getTeacherAssistants();
+    const nextActiveAssistant =
+      loadedAssistants.find((assistant) => assistant.id === preferredAssistantId) ||
+      loadedAssistants[0] ||
+      null;
+
+    setAssistants(loadedAssistants);
+    setActiveAssistant(nextActiveAssistant);
+    await loadAssistantDetails(nextActiveAssistant);
+  };
 
   const loadAssistantDetails = async (assistant) => {
     if (!assistant) {
@@ -56,6 +73,7 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
     async function loadAssistants() {
       const loadedAssistants = await getTeacherAssistants();
       if (cancelled) return;
+
       const firstAssistant = loadedAssistants[0] || null;
       setAssistants(loadedAssistants);
       setActiveAssistant(firstAssistant);
@@ -105,6 +123,21 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
     setStudents(await removeStudentFromAssistant(activeAssistant.id, studentId));
   };
 
+  const confirmDeleteAssistant = async () => {
+    if (!deletingAssistant) return;
+
+    setDeletingAssistantPending(true);
+    try {
+      await deleteTeacherAssistant(deletingAssistant.id);
+
+      const preferredAssistantId = activeAssistant?.id === deletingAssistant.id ? null : activeAssistant?.id || null;
+      await reloadAssistants(preferredAssistantId);
+      setDeletingAssistant(null);
+    } finally {
+      setDeletingAssistantPending(false);
+    }
+  };
+
   return (
     <div className="teacher-page">
       <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} />
@@ -120,14 +153,20 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
 
           <div className="teacher-assistant-list">
             {assistants.map((assistant) => (
-              <button
-                className={`teacher-assistant ${assistant.id === activeAssistant?.id ? "teacher-assistant--active" : ""}`}
-                key={assistant.id}
-                type="button"
-                onClick={() => selectAssistant(assistant)}
-              >
-                {assistant.title}
-              </button>
+              <div className={`teacher-assistant-row ${assistant.id === activeAssistant?.id ? "teacher-assistant-row--active" : ""}`} key={assistant.id}>
+                <button className="teacher-assistant" type="button" onClick={() => selectAssistant(assistant)}>
+                  {assistant.title}
+                </button>
+
+                <div className="teacher-assistant__actions">
+                  <button className="icon-button" type="button" aria-label="Редагувати асистента" onClick={() => onNavigate(`/teacher/assistants/${assistant.id}/edit`)}>
+                    <Pencil size={16} />
+                  </button>
+                  <button className="icon-button teacher-icon-button--danger" type="button" aria-label="Видалити асистента" onClick={() => setDeletingAssistant(assistant)}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         </aside>
@@ -227,6 +266,12 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
           </div>
         </main>
       </div>
+      <DeleteAssistantModal
+        assistant={deletingAssistant}
+        deleting={deletingAssistantPending}
+        onCancel={() => setDeletingAssistant(null)}
+        onConfirm={confirmDeleteAssistant}
+      />
     </div>
   );
 }

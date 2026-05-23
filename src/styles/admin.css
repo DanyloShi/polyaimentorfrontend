@@ -381,3 +381,53 @@
   min-height: 36px;
   padding: 0 12px;
 }
+
+.admin-model-card__actions {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-delete-modal {
+  width: min(460px, 100%);
+}
+
+.admin-delete-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.admin-icon-button--danger {
+  border-color: #efc3ba;
+  color: #a54332;
+}
+
+.admin-icon-button--danger:hover {
+  background: #fff1ee;
+}
+
+.admin-button--danger {
+  background: #bb4d3d;
+  color: #fff;
+}
+
+.admin-button--danger:hover {
+  background: #a54332;
+}
+
+.admin-model-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-model-toggle input {
+  width: 18px;
+  height: 18px;
+}

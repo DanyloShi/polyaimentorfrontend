@@ -6,6 +6,27 @@ export async function getTeacherAssistants() {
   return data.items || [];
 }
 
+export async function getTeacherAssistantById(assistantId) {
+  return await apiRequest(`/assistants/${assistantId}`);
+}
+
+export async function updateTeacherAssistant(assistantId, { title, modelId, isPublic }) {
+  return await apiRequest(`/assistants/${assistantId}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      title,
+      model_id: modelId,
+      is_public: isPublic,
+    }),
+  });
+}
+
+export async function deleteTeacherAssistant(assistantId) {
+  await apiRequest(`/assistants/${assistantId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function createTeacherAssistant({ title, modelId, isPublic }) {
   return await apiRequest(endpoints.privateAssistants, {
     method: "POST",

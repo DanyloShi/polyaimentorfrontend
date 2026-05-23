@@ -43,6 +43,20 @@
   padding-right: 3px;
 }
 
+.teacher-assistant-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.teacher-assistant-row:hover,
+.teacher-assistant-row--active {
+  background: var(--color-accent-soft);
+}
+
 .teacher-assistant {
   min-height: 42px;
   border: 0;
@@ -56,7 +70,25 @@
 
 .teacher-assistant:hover,
 .teacher-assistant--active {
-  background: var(--color-accent-soft);
+  background: transparent;
+}
+
+.teacher-assistant__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.teacher-assistant-row:hover .teacher-assistant__actions,
+.teacher-assistant-row--active .teacher-assistant__actions {
+  opacity: 1;
+}
+
+.teacher-assistant__actions .icon-button {
+  width: 32px;
+  height: 32px;
 }
 
 .teacher-main {
@@ -448,4 +480,34 @@
 .teacher-student-chat__messages--full {
   height: 100%;
   padding: 28px clamp(18px, 6vw, 92px);
+}
+
+
+.teacher-icon-button--danger {
+  border-color: #efc3ba;
+  color: #a54332;
+}
+
+.teacher-icon-button--danger:hover {
+  background: #fff1ee;
+}
+
+.teacher-button--danger {
+  background: #bb4d3d;
+  color: #fff;
+}
+
+.teacher-button--danger:hover {
+  background: #a54332;
+}
+
+.teacher-delete-modal {
+  width: min(460px, 100%);
+}
+
+.teacher-delete-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
 }

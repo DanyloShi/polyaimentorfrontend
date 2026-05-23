@@ -5,10 +5,20 @@ import AdminModelCreatePage from "./pages/AdminModelCreatePage.jsx";
 import StudentChatPage from "./pages/StudentChatPage.jsx";
 import TeacherAssistantCreatePage from "./pages/TeacherAssistantCreatePage.jsx";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage.jsx";
-import { createAdminAssistant, getAdminStudentChatForAssistant } from "./services/admin.js";
-import { createTeacherAssistant } from "./services/teacher.js";
-import { getStudentChatForAssistant } from "./services/teacher.js";
-import { getCurrentSession, logoutSession } from "./services/session.js";
+import {
+  createAdminAssistant,
+  deleteAdminAssistant,
+  getAdminAssistantById,
+  getAdminStudentChatForAssistant,
+  updateAdminAssistant,
+} from "./services/admin.js";
+import {
+  createTeacherAssistant,
+  deleteTeacherAssistant,
+  getStudentChatForAssistant,
+  getTeacherAssistantById,
+  updateTeacherAssistant,
+} from "./services/teacher.js";
 import "./styles/tokens.css";
 import "./styles/globals.css";
 import "./styles/header.css";
@@ -87,6 +97,20 @@ export default function App() {
       );
     }
 
+    const adminModelEditMatch = path.match(/^\/admin\/models\/([^/]+)\/edit$/);
+
+    if (adminModelEditMatch) {
+      return (
+        <AdminModelCreatePage
+          session={session}
+          onLogout={handleLogout}
+          onNavigate={navigate}
+          mode="edit"
+          modelId={adminModelEditMatch[1]}
+        />
+      );
+    }
+
     if (path === "/admin/assistants/new") {
       return (
         <TeacherAssistantCreatePage
@@ -102,8 +126,35 @@ export default function App() {
       );
     }
 
+    const adminAssistantEditMatch = path.match(/^\/admin\/assistants\/([^/]+)\/edit$/);
+
+    if (adminAssistantEditMatch) {
+      return (
+        <TeacherAssistantCreatePage
+          session={session}
+          onLogout={handleLogout}
+          onNavigate={navigate}
+          mode="edit"
+          assistantId={adminAssistantEditMatch[1]}
+          loadAssistant={getAdminAssistantById}
+          updateAssistant={updateAdminAssistant}
+          backPath="/admin/assistants"
+          eyebrow="Редагування асистента"
+          titleText="Редагування асистента"
+          description="Адміністратор може змінити назву, модель і публічність асистента."
+        />
+      );
+    }
+
     if (path === "/admin/models/new") {
-      return <AdminModelCreatePage session={session} onLogout={handleLogout} onNavigate={navigate} />;
+      return (
+        <AdminModelCreatePage
+          session={session}
+          onLogout={handleLogout}
+          onNavigate={navigate}
+          mode="create"
+        />
+      );
     }
 
     if (path === "/admin/students/chat") {
@@ -143,6 +194,26 @@ export default function App() {
           onNavigate={navigate}
           createAssistant={createTeacherAssistant}
           backPath="/teacher"
+        />
+      );
+    }
+
+    const teacherAssistantEditMatch = path.match(/^\/teacher\/assistants\/([^/]+)\/edit$/);
+
+    if (teacherAssistantEditMatch) {
+      return (
+        <TeacherAssistantCreatePage
+          session={session}
+          onLogout={handleLogout}
+          onNavigate={navigate}
+          mode="edit"
+          assistantId={teacherAssistantEditMatch[1]}
+          loadAssistant={getTeacherAssistantById}
+          updateAssistant={updateTeacherAssistant}
+          backPath="/teacher"
+          eyebrow="Редагування асистента"
+          titleText="Редагування асистента"
+          description="Викладач може змінити назву, модель і публічність асистента."
         />
       );
     }

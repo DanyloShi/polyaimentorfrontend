@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AppHeader from "../components/header/AppHeader.jsx";
-import { createAdminModel } from "../services/admin.js";
+import { createAdminModel, getAdminModel, updateAdminModel } from "../services/admin.js";
 
 const providerOptions = [
   { value: "api", label: "API model" },
@@ -15,16 +15,60 @@ const initialLimits = {
   admins: "350",
 };
 
-export default function AdminModelCreatePage({ session, onLogout, onNavigate }) {
+export default function AdminModelCreatePage({ session, onLogout, onNavigate, mode = "create", modelId = "" }) {
+  const isEdit = mode === "edit";
   const [provider, setProvider] = useState("api");
   const [modelName, setModelName] = useState("");
   const [endpoint, setEndpoint] = useState("");
   const [secretKey, setSecretKey] = useState("");
   const [localPath, setLocalPath] = useState("");
+  const [isEnabled, setIsEnabled] = useState(true);
   const [limits, setLimits] = useState(initialLimits);
+  const [loading, setLoading] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
 
   const isLocal = provider === "local";
+
+  useEffect(() => {
+    if (!isEdit || !modelId) return;
+
+    let cancelled = false;
+
+    async function loadModel() {
+      setLoading(true);
+      try {
+        const model = await getAdminModel(modelId);
+        if (cancelled) return;
+
+        setProvider(model.provider || "api");
+        setModelName(model.model_name || "");
+        setEndpoint(model.endpoint || "");
+        setLocalPath(model.local_path || "");
+        setIsEnabled(Boolean(model.is_enabled));
+
+        if (model.limits) {
+          setLimits({
+            total: String(model.limits.total ?? 0),
+            guests: String(model.limits.guests ?? 0),
+            students: String(model.limits.students ?? 0),
+            admins: String(model.limits.admins ?? 0),
+          });
+        } else {
+          setLimits(initialLimits);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadModel();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEdit, modelId]);
+
   const canSubmit = useMemo(() => {
     if (!modelName.trim()) return false;
     if (isLocal) {
@@ -41,25 +85,49 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate }) 
     event.preventDefault();
     if (!canSubmit || submitting) return;
 
-    const payload = {
-      provider,
-      model_name: modelName.trim(),
-      endpoint: isLocal ? null : endpoint.trim() || null,
-      secret_key: isLocal ? null : secretKey.trim() || null,
-      local_path: isLocal ? localPath.trim() || null : null,
-      limits: isLocal
-        ? null
-        : {
-            total: Number(limits.total || 0),
-            guests: Number(limits.guests || 0),
-            students: Number(limits.students || 0),
-            admins: Number(limits.admins || 0),
-          },
-    };
-
     setSubmitting(true);
+
     try {
-      await createAdminModel(payload);
+      if (isEdit) {
+        const payload = {
+          model_name: modelName.trim(),
+          endpoint: isLocal ? null : endpoint.trim() || null,
+          local_path: isLocal ? localPath.trim() || null : null,
+          is_enabled: isEnabled,
+          ...(secretKey.trim() ? { secret_key: secretKey.trim() } : {}),
+          ...(!isLocal
+            ? {
+                limits: {
+                  total: Number(limits.total || 0),
+                  guests: Number(limits.guests || 0),
+                  students: Number(limits.students || 0),
+                  admins: Number(limits.admins || 0),
+                },
+              }
+            : {}),
+        };
+
+        await updateAdminModel(modelId, payload);
+      } else {
+        const payload = {
+          provider,
+          model_name: modelName.trim(),
+          endpoint: isLocal ? null : endpoint.trim() || null,
+          secret_key: isLocal ? null : secretKey.trim() || null,
+          local_path: isLocal ? localPath.trim() || null : null,
+          limits: isLocal
+            ? null
+            : {
+                total: Number(limits.total || 0),
+                guests: Number(limits.guests || 0),
+                students: Number(limits.students || 0),
+                admins: Number(limits.admins || 0),
+              },
+        };
+
+        await createAdminModel(payload);
+      }
+
       onNavigate("/admin/models");
     } finally {
       setSubmitting(false);
@@ -77,15 +145,21 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate }) 
         </button>
 
         <section className="teacher-create-intro" aria-labelledby="admin-model-create-title">
-          <p>Нова модель</p>
-          <h1 id="admin-model-create-title">Створення моделі</h1>
-          <span>Форма відповідає: провайдер, назва, endpoint або local path, а для API-моделей ще й ліміти.</span>
+          <p>{isEdit ? "Редагування моделі" : "Нова модель"}</p>
+          <h1 id="admin-model-create-title">{isEdit ? "Редагування моделі" : "Створення моделі"}</h1>
+          <span>
+            {isEdit
+              ? "Можна змінити лише поля, які дозволяє бекенд: назву, endpoint або local path, secret key, is_enabled і limits."
+              : "Форма відповідає: провайдер, назва, endpoint або local path, а для API-моделей ще й ліміти."}
+          </span>
         </section>
 
         <form className="teacher-create-form admin-model-form" onSubmit={handleSubmit}>
+          {loading ? <p className="teacher-muted">Завантаження моделі...</p> : null}
+
           <label>
             Провайдер
-            <select value={provider} onChange={(event) => setProvider(event.target.value)}>
+            <select value={provider} onChange={(event) => setProvider(event.target.value)} disabled={isEdit}>
               {providerOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -109,7 +183,7 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate }) 
           {!isLocal ? (
             <label>
               Secret key
-              <input value={secretKey} onChange={(event) => setSecretKey(event.target.value)} placeholder="sk-..." />
+              <input value={secretKey} onChange={(event) => setSecretKey(event.target.value)} placeholder={isEdit ? "Залиш порожнім, щоб не змінювати" : "sk-..."} />
             </label>
           ) : null}
 
@@ -117,6 +191,13 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate }) 
             <label>
               Local path
               <input value={localPath} onChange={(event) => setLocalPath(event.target.value)} placeholder="/models/qwen2.5-7b-instruct" />
+            </label>
+          ) : null}
+
+          {isEdit ? (
+            <label className="admin-model-toggle">
+              <span>Модель активна</span>
+              <input type="checkbox" checked={isEnabled} onChange={(event) => setIsEnabled(event.target.checked)} />
             </label>
           ) : null}
 
@@ -141,8 +222,8 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate }) 
             </div>
           ) : null}
 
-          <button className="button button--dark teacher-create-submit" type="submit" disabled={!canSubmit || submitting}>
-            {submitting ? "Створення..." : "Створити модель"}
+          <button className="button button--dark teacher-create-submit" type="submit" disabled={loading || !canSubmit || submitting}>
+            {submitting ? (isEdit ? "Збереження..." : "Створення...") : isEdit ? "Зберегти зміни" : "Створити модель"}
           </button>
         </form>
       </main>

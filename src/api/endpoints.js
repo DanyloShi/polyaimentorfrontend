@@ -12,6 +12,7 @@ export const endpoints = {
   assistantAccess: (assistantId) => `/assistants/${assistantId}/access`,
   documents: "/documents/",
   models: "/models/",
+  modelById: (modelId) => `/models/${encodeURIComponent(modelId)}`,
   uploadDocument: "/documents/upload",
   deleteDocument: (sourceId) => `/documents/${sourceId}`,
   startConversation: "/chat/start",

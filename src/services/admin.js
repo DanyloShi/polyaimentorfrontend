@@ -6,6 +6,27 @@ export async function getAdminAssistants() {
   return data.items || [];
 }
 
+export async function getAdminAssistantById(assistantId) {
+  return await apiRequest(`/assistants/${assistantId}`);
+}
+
+export async function updateAdminAssistant(assistantId, { title, modelId, isPublic }) {
+  return await apiRequest(`/assistants/${assistantId}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      title,
+      model_id: modelId,
+      is_public: isPublic,
+    }),
+  });
+}
+
+export async function deleteAdminAssistant(assistantId) {
+  await apiRequest(`/assistants/${assistantId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function createAdminAssistant({ title, modelId, isPublic }) {
   return await apiRequest(endpoints.privateAssistants, {
     method: "POST",
@@ -89,10 +110,27 @@ export async function getAdminModels() {
   return data.items || [];
 }
 
+export async function getAdminModel(modelId) {
+  return await apiRequest(endpoints.modelById(modelId));
+}
+
 export async function createAdminModel(payload) {
   return await apiRequest(endpoints.models, {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAdminModel(modelId, payload) {
+  return await apiRequest(endpoints.modelById(modelId), {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteAdminModel(modelId) {
+  await apiRequest(endpoints.modelById(modelId), {
+    method: "DELETE",
   });
 }
 
