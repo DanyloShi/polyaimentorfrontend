@@ -5,7 +5,15 @@ const roleLabels = {
   admin: "Адмін",
 };
 
-export default function AppHeader({ session, onLoginClick, onLogout, navItems = [], activeNav = "", onNavigate }) {
+export default function AppHeader({
+  session,
+  onLoginClick,
+  onLogout,
+  navItems = [],
+  activeNav = "",
+  onNavigate,
+  showPanelShortcut = true,
+}) {
   const role = session?.role || "guest";
   const hasNav = navItems.length > 0;
   const panelPathByRole = {
@@ -43,7 +51,7 @@ export default function AppHeader({ session, onLoginClick, onLogout, navItems = 
 
       <div className="app-header__actions">
         <span className="app-header__role">{roleLabels[role] || role}</span>
-        {panelPath ? (
+        {showPanelShortcut && panelPath ? (
           <button className="button button--ghost" type="button" onClick={() => onNavigate?.(panelPath)}>
             {panelLabelByRole[role]}
           </button>
