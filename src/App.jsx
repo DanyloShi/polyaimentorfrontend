@@ -19,6 +19,7 @@ import {
   getTeacherAssistantById,
   updateTeacherAssistant,
 } from "./services/teacher.js";
+import { getCurrentSession, logoutSession } from "./services/session.js";
 import "./styles/tokens.css";
 import "./styles/globals.css";
 import "./styles/header.css";
