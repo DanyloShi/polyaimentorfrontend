@@ -93,7 +93,8 @@ export async function addStudentToAssistant(assistantId, student) {
   await apiRequest(endpoints.assistantAccess(assistantId), {
     method: "POST",
     body: JSON.stringify({
-      identifier: student.email,
+      user_id: student.id,
+      identifier: student.email || student.google_sub || student.id,
       access_role: "user",
     }),
   });

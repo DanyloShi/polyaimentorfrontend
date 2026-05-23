@@ -47,6 +47,8 @@ function AdminAssistantsTab({ onNavigate }) {
   const [students, setStudents] = useState([]);
   const [studentQuery, setStudentQuery] = useState("");
   const [studentResults, setStudentResults] = useState([]);
+  const [studentActionMessage, setStudentActionMessage] = useState("");
+  const [addingStudentId, setAddingStudentId] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [deletingAssistant, setDeletingAssistant] = useState(null);
@@ -124,14 +126,24 @@ function AdminAssistantsTab({ onNavigate }) {
 
   const searchStudents = async (value) => {
     setStudentQuery(value);
+    setStudentActionMessage("");
     setStudentResults(await searchAdminStudentsByEmail(value));
   };
 
   const addStudent = async (student) => {
     if (!activeAssistant) return;
-    setStudents(await addStudentToAdminAssistant(activeAssistant.id, student));
-    setStudentQuery("");
-    setStudentResults([]);
+    setAddingStudentId(student.id);
+    setStudentActionMessage("");
+    try {
+      setStudents(await addStudentToAdminAssistant(activeAssistant.id, student));
+      setStudentQuery("");
+      setStudentResults([]);
+      setStudentActionMessage(`Студента ${student.email || student.id} додано до асистента.`);
+    } catch (error) {
+      setStudentActionMessage(String(error.message || "Не вдалося додати студента до асистента."));
+    } finally {
+      setAddingStudentId("");
+    }
   };
 
   const removeStudent = async (studentId) => {
@@ -260,13 +272,29 @@ function AdminAssistantsTab({ onNavigate }) {
               {studentResults.length > 0 ? (
                 <div className="teacher-search-results">
                   {studentResults.map((student) => (
-                    <button key={student.id} type="button" onClick={() => addStudent(student)}>
-                      <span>{student.email}</span>
-                      <small>{student.name || student.role}</small>
-                    </button>
+                    <div className="teacher-search-result" key={student.id}>
+                      <div className="teacher-search-result__meta">
+                        <span>{student.email || student.google_sub || student.id}</span>
+                        <small>{student.name || student.role}</small>
+                      </div>
+                      <button
+                        className="button button--ghost teacher-search-result__action"
+                        type="button"
+                        onClick={() => addStudent(student)}
+                        disabled={!activeAssistant || addingStudentId === student.id || students.some((item) => item.id === student.id)}
+                      >
+                        {students.some((item) => item.id === student.id)
+                          ? "Вже додано"
+                          : addingStudentId === student.id
+                            ? "Додається..."
+                            : "Додати"}
+                      </button>
+                    </div>
                   ))}
                 </div>
               ) : null}
+
+              {studentActionMessage ? <p className="teacher-inline-feedback">{studentActionMessage}</p> : null}
 
               <div className="teacher-list">
                 {students.length === 0 ? <p className="teacher-muted">Студентів ще не додано.</p> : null}
@@ -292,6 +320,12 @@ function AdminAssistantsTab({ onNavigate }) {
           )}
         </div>
       </main>
+      <DeleteAssistantModal
+        assistant={deletingAssistant}
+        deleting={deletingAssistantPending}
+        onCancel={() => setDeletingAssistant(null)}
+        onConfirm={confirmDeleteAssistant}
+      />
     </div>
   );
 }
