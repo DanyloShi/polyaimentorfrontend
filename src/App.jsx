@@ -133,7 +133,6 @@ export default function App() {
           backPath="/admin/assistants"
           eyebrow="Редагування асистента"
           titleText="Редагування асистента"
-          description="Адміністратор може змінити назву, модель і публічність асистента."
         />
       );
     }
@@ -205,7 +204,6 @@ export default function App() {
           backPath="/teacher"
           eyebrow="Редагування асистента"
           titleText="Редагування асистента"
-          description="Викладач може змінити назву, модель і публічність асистента."
         />
       );
     }
