@@ -136,7 +136,7 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate, mo
 
   return (
     <div className="teacher-page admin-page">
-      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} />
+      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} showPanelShortcut={false} />
 
       <main className="teacher-create-page admin-model-create-page">
         <button className="button button--ghost teacher-back teacher-back--compact" type="button" onClick={() => onNavigate("/admin/models")}>
@@ -147,11 +147,6 @@ export default function AdminModelCreatePage({ session, onLogout, onNavigate, mo
         <section className="teacher-create-intro" aria-labelledby="admin-model-create-title">
           <p>{isEdit ? "Редагування моделі" : "Нова модель"}</p>
           <h1 id="admin-model-create-title">{isEdit ? "Редагування моделі" : "Створення моделі"}</h1>
-          <span>
-            {isEdit
-              ? "Можна змінити лише поля, які дозволяє бекенд: назву, endpoint або local path, secret key, is_enabled і limits."
-              : "Форма відповідає: провайдер, назва, endpoint або local path, а для API-моделей ще й ліміти."}
-          </span>
         </section>
 
         <form className="teacher-create-form admin-model-form" onSubmit={handleSubmit}>

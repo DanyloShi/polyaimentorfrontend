@@ -62,15 +62,6 @@ export default function App() {
     return () => window.removeEventListener("popstate", syncPath);
   }, []);
 
-  useEffect(() => {
-    if (!ready || path !== "/") return;
-    if (session?.role === "admin") {
-      navigate("/admin/assistants");
-    } else if (session?.role === "teacher") {
-      navigate("/teacher");
-    }
-  }, [ready, session?.role, path]);
-
   const handleSessionChange = (nextSession) => {
     setSession(nextSession);
   };

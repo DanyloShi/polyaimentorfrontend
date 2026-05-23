@@ -87,7 +87,7 @@ export default function TeacherAssistantCreatePage({
 
   return (
     <div className="teacher-page">
-      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} />
+      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} showPanelShortcut={false} />
 
       <main className="teacher-create-page">
         <button className="button button--ghost teacher-back teacher-back--compact" type="button" onClick={() => onNavigate(backPath)}>

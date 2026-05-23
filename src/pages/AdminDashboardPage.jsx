@@ -570,7 +570,14 @@ export default function AdminDashboardPage({ session, onLogout, onNavigate, path
 
   return (
     <div className="teacher-page admin-page">
-      <AppHeader session={session} onLogout={onLogout} navItems={adminNavItems} activeNav={activeNav} onNavigate={onNavigate} />
+      <AppHeader
+        session={session}
+        onLogout={onLogout}
+        navItems={adminNavItems}
+        activeNav={activeNav}
+        onNavigate={onNavigate}
+        showPanelShortcut={false}
+      />
 
       {activeNav === "/admin/models" ? <AdminModelsTab onNavigate={onNavigate} /> : null}
       {activeNav === "/admin/roles" ? <AdminRolesTab /> : null}

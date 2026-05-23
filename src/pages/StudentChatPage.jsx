@@ -34,7 +34,7 @@ export default function StudentChatPage({
 
   return (
     <div className="teacher-page">
-      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} />
+      <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} showPanelShortcut={false} />
 
       <main className="teacher-chat-page">
         <header className="teacher-chat-topbar">
