@@ -8,7 +8,7 @@ export const endpoints = {
   guest: "/auth/guest",
   googleStart: "/auth/google/start",
   publicAssistants: "/assistants/public",
-  privateAssistants: "/assistants",
+  privateAssistants: "/assistants/",
   assistantAccess: (assistantId) => `/assistants/${assistantId}/access`,
   documents: "/documents",
   uploadDocument: "/documents/upload",
@@ -16,6 +16,6 @@ export const endpoints = {
   startConversation: "/chat/start",
   conversationByAssistant: (assistantId) => `/chat/by-assistant?assistant_id=${encodeURIComponent(assistantId)}`,
   messages: (conversationId) => `/chat/${conversationId}/messages`,
-  models: "/models",
+  models: "/models/",
   modelById: (modelId) => `/models/${modelId}`,
 };
