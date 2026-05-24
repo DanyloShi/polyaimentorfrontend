@@ -32,9 +32,14 @@ export default function ChatPanel({ assistant, messages, loading, isAssistantThi
       <ChatHeader assistant={assistant} />
 
       <div ref={bodyRef} className="chat-panel__body">
-        {messages.length ? <MessageList messages={messages} /> : <EmptyChatState assistant={assistant} />}
+        {messages.length ? (
+          <MessageList messages={messages}>
+            {isAssistantThinking ? <ThinkingIndicator /> : null}
+          </MessageList>
+        ) : (
+          <EmptyChatState assistant={assistant} />
+        )}
         {loading ? <div className="chat-panel__loading">Завантаження чату...</div> : null}
-        {isAssistantThinking ? <ThinkingIndicator /> : null}
       </div>
 
       <ChatComposer
