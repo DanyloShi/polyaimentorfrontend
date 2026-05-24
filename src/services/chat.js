@@ -1,5 +1,6 @@
 import { apiRequest } from "../api/client.js";
 import { endpoints } from "../api/endpoints.js";
+import { clearGuestToken, createGuestSession, getGuestToken, isGuestTokenError } from "./session.js";
 
 export async function getConversationForAssistant(assistantId) {
   try {
@@ -20,20 +21,38 @@ export async function getConversationForAssistant(assistantId) {
 }
 
 export async function sendMessageToAssistant({ assistantId, conversationId, message }) {
-  let activeConversationId = conversationId;
+  async function executeSend() {
+    let activeConversationId = conversationId;
 
-  if (!activeConversationId) {
-    const started = await apiRequest(endpoints.startConversation, {
+    if (!activeConversationId) {
+      const started = await apiRequest(endpoints.startConversation, {
+        method: "POST",
+        body: JSON.stringify({ assistant_id: assistantId }),
+      });
+      activeConversationId = started.conversation_id;
+    }
+
+    await apiRequest(endpoints.messages(activeConversationId), {
       method: "POST",
-      body: JSON.stringify({ assistant_id: assistantId }),
+      body: JSON.stringify({ message }),
     });
-    activeConversationId = started.conversation_id;
+
+    return await apiRequest(endpoints.conversationByAssistant(assistantId));
   }
 
-  await apiRequest(endpoints.messages(activeConversationId), {
-    method: "POST",
-    body: JSON.stringify({ message }),
-  });
+  if (!getGuestToken()) {
+    await createGuestSession(assistantId);
+  }
 
-  return await apiRequest(endpoints.conversationByAssistant(assistantId));
+  try {
+    return await executeSend();
+  } catch (error) {
+    if (!isGuestTokenError(error)) {
+      throw error;
+    }
+
+    clearGuestToken();
+    await createGuestSession(assistantId);
+    return await executeSend();
+  }
 }

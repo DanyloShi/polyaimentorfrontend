@@ -3,6 +3,11 @@ import { endpoints, GOOGLE_AUTH_START_URL } from "../api/endpoints.js";
 
 const GUEST_TOKEN_KEY = "polyai_guest_token";
 
+function isGuestTokenErrorMessage(message) {
+  const normalized = String(message || "").toLowerCase();
+  return normalized.includes("guest token invalid") || normalized.includes("guest token expired");
+}
+
 export function getGuestToken() {
   return window.localStorage.getItem(GUEST_TOKEN_KEY) || "";
 }
@@ -35,6 +40,12 @@ export async function getCurrentSession() {
     return session;
   } catch (error) {
     const message = String(error.message || "");
+    const normalized = message.toLowerCase();
+
+    if (isGuestTokenErrorMessage(message)) {
+      clearGuestToken();
+      return { authenticated: false, role: "guest", user_id: null };
+    }
 
     if (message.includes("Provide either guest token or bearer/cookie token")) {
       clearGuestToken();
@@ -56,7 +67,7 @@ export async function getCurrentSession() {
       }
     }
 
-    if (message.includes("401")) {
+    if (normalized.includes("401")) {
       return { authenticated: false, role: "guest", user_id: null };
     }
 
@@ -81,4 +92,8 @@ export function buildGoogleLoginUrl() {
   const url = new URL(GOOGLE_AUTH_START_URL, window.location.origin);
   url.searchParams.set("return_to", "/");
   return url.toString();
+}
+
+export function isGuestTokenError(error) {
+  return isGuestTokenErrorMessage(error?.message || "");
 }
