@@ -108,7 +108,10 @@ export async function getAdminStudentChatForAssistant(assistantId, studentId) {
 
 export async function getAdminModels() {
   const data = await apiRequest(endpoints.models);
-  return data.items || [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.models)) return data.models;
+  return [];
 }
 
 export async function getAdminModel(modelId) {

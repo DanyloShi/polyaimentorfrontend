@@ -334,13 +334,24 @@ function AdminModelsTab({ onNavigate }) {
   const [models, setModels] = useState([]);
   const [deletingModel, setDeletingModel] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadModels() {
-      const loadedModels = await getAdminModels();
-      if (!cancelled) setModels(loadedModels);
+      try {
+        const loadedModels = await getAdminModels();
+        if (!cancelled) {
+          setModels(loadedModels);
+          setLoadError("");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setModels([]);
+          setLoadError(error instanceof Error ? error.message : "Не вдалося завантажити моделі");
+        }
+      }
     }
 
     loadModels();
@@ -393,6 +404,8 @@ function AdminModelsTab({ onNavigate }) {
               <strong>{apiCount}</strong>
             </article>
           </div>
+
+          {loadError ? <p className="teacher-muted">{loadError}</p> : null}
 
           <div className="admin-models-grid">
             {models.map((model) => (
