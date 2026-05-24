@@ -94,10 +94,10 @@ export async function addStudentToAssistant(assistantId, student) {
     method: "POST",
     body: JSON.stringify({
       user_id: student.id,
-      identifier: student.email || student.google_sub || student.id,
       access_role: "user",
     }),
   });
+
   return getAssistantStudents(assistantId);
 }
 
