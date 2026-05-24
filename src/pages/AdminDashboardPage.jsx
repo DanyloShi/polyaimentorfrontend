@@ -408,10 +408,12 @@ function AdminModelsTab({ onNavigate }) {
                 </div>
 
                 <div className="admin-model-card__body">
-                  <div className="admin-model-line">
-                    <span>Endpoint</span>
-                    <strong>{model.endpoint || "not set"}</strong>
-                  </div>
+                  {model.provider !== "local" ? (
+                    <div className="admin-model-line">
+                      <span>Endpoint</span>
+                      <strong>{model.endpoint || "not set"}</strong>
+                    </div>
+                  ) : null}
                   <div className="admin-model-line">
                     <span>Local path</span>
                     <strong>{model.local_path || "not set"}</strong>
