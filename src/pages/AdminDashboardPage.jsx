@@ -7,7 +7,7 @@ import {
   assignUserRole,
   deleteAdminAssistant,
   deleteAdminAssistantDocument,
-  getAdminAssistantById,
+  deleteAdminModel,
   getAdminAssistantDocuments,
   getAdminAssistants,
   getAdminAssistantStudents,
