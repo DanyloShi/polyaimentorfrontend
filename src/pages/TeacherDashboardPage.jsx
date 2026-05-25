@@ -28,7 +28,8 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
   const [activePanel, setActivePanel] = useState("documents");
   const [documents, setDocuments] = useState([]);
   const [students, setStudents] = useState([]);
-  const [loadError, setLoadError] = useState("");
+  const [documentsLoadError, setDocumentsLoadError] = useState("");
+  const [studentsLoadError, setStudentsLoadError] = useState("");
   const [studentQuery, setStudentQuery] = useState("");
   const [studentResults, setStudentResults] = useState([]);
   const [studentActionMessage, setStudentActionMessage] = useState("");
@@ -54,7 +55,8 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
     if (!assistant) {
       setDocuments([]);
       setStudents([]);
-      setLoadError("");
+      setDocumentsLoadError("");
+      setStudentsLoadError("");
       return;
     }
 
@@ -65,27 +67,21 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
         getAssistantStudents(assistant.id),
       ]);
 
-      const failedSections = [];
-
       if (loadedDocuments.status === "fulfilled") {
         setDocuments(loadedDocuments.value);
+        setDocumentsLoadError("");
       } else {
         setDocuments([]);
-        failedSections.push("документи");
+        setDocumentsLoadError("Не вдалося завантажити документи для вибраного асистента.");
       }
 
       if (loadedStudents.status === "fulfilled") {
         setStudents(loadedStudents.value);
+        setStudentsLoadError("");
       } else {
         setStudents([]);
-        failedSections.push("студентів");
+        setStudentsLoadError("Не вдалося завантажити студентів для вибраного асистента.");
       }
-
-      setLoadError(
-        failedSections.length > 0
-          ? `Не вдалося завантажити ${failedSections.join(" та ")} для вибраного асистента.`
-          : "",
-      );
     } finally {
       setLoading(false);
     }
@@ -235,7 +231,7 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
 
                 <div className="teacher-list">
                   {loading ? <p className="teacher-muted">Завантаження...</p> : null}
-                  {loadError ? <p className="teacher-inline-feedback">{loadError}</p> : null}
+                  {documentsLoadError ? <p className="teacher-inline-feedback">{documentsLoadError}</p> : null}
                   {!loading && documents.length === 0 ? <p className="teacher-muted">Документів ще немає.</p> : null}
                   {documents.map((document) => (
                     <div className="teacher-document" key={document.id}>
@@ -295,7 +291,7 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
                 ) : null}
 
                 {studentActionMessage ? <p className="teacher-inline-feedback">{studentActionMessage}</p> : null}
-                {loadError ? <p className="teacher-inline-feedback">{loadError}</p> : null}
+                {studentsLoadError ? <p className="teacher-inline-feedback">{studentsLoadError}</p> : null}
 
                 <div className="teacher-list">
                   {students.length === 0 ? <p className="teacher-muted">Студентів ще не додано.</p> : null}
