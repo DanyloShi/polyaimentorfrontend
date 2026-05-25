@@ -10,7 +10,7 @@ export const endpoints = {
   publicAssistants: "/assistants/public",
   privateAssistants: "/assistants/",
   assistantAccess: (assistantId) => `/assistants/${assistantId}/access`,
-  documents: "/documents",
+  documents: "/documents/",
   uploadDocument: "/documents/upload",
   deleteDocument: (sourceId) => `/documents/${sourceId}`,
   startConversation: "/chat/start",
