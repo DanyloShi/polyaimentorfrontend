@@ -71,9 +71,23 @@
   font-size: 16px;
 }
 
-.message-bubble p {
-  margin: 0;
-  white-space: pre-wrap;
+.message-bubble__content {
+  white-space: normal;
+}
+
+.message-bubble__content p {
+  margin: 0 0 16px;
+}
+
+.message-bubble__content p:last-child {
+  margin-bottom: 0;
+}
+
+.message-bubble__content .katex-display {
+  margin: 12px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
 }
 
 .message-bubble--enter {
