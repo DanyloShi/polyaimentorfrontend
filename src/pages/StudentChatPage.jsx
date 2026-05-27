@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import MessageList from "../components/chat/MessageList.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
 
 export default function StudentChatPage({
@@ -15,14 +16,27 @@ export default function StudentChatPage({
   const studentId = params.get("student_id") || "";
   const studentEmail = params.get("student_email") || studentId || "student";
   const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadChat() {
-      const loadedMessages = await getChat(assistantId, studentId);
-      if (!cancelled) {
-        setMessages(loadedMessages);
+      setLoading(true);
+      try {
+        const loadedMessages = await getChat(assistantId, studentId);
+        if (!cancelled) {
+          setMessages(
+            (loadedMessages || []).map((message, index) => ({
+              ...message,
+              message_id: message.message_id || message.id || `${message.role}-${index}`,
+            })),
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
@@ -49,13 +63,14 @@ export default function StudentChatPage({
         </header>
 
         <section className="teacher-chat-full" aria-label={`${title} ${studentEmail}`}>
-          <div className="teacher-student-chat__messages teacher-student-chat__messages--full">
-            {messages.length === 0 ? <p className="teacher-muted">Повідомлень ще немає.</p> : null}
-            {messages.map((message) => (
-              <article className={`teacher-chat-message teacher-chat-message--${message.role}`} key={message.id || message.message_id}>
-                {message.content}
-              </article>
-            ))}
+          <div className="chat-panel__body teacher-chat-body">
+            {messages.length ? (
+              <MessageList messages={messages} />
+            ) : (
+              <div className="teacher-chat-empty">
+                {loading ? "Завантаження чату..." : "Повідомлень ще немає."}
+              </div>
+            )}
           </div>
         </section>
       </main>

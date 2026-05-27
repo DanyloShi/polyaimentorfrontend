@@ -501,19 +501,22 @@
   overflow: hidden;
 }
 
-.teacher-student-chat__messages {
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.teacher-student-chat__messages--full {
+.teacher-chat-body {
   height: 100%;
-  padding: 28px clamp(18px, 6vw, 92px);
+  padding-top: 28px;
+  padding-bottom: 24px;
 }
 
+.teacher-chat-empty {
+  max-width: 980px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding-left: 23px;
+  padding-right: 28px;
+  display: flex;
+  align-items: flex-start;
+  color: var(--color-muted);
+}
 
 .teacher-icon-button--danger {
   border-color: #efc3ba;
