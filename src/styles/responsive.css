@@ -153,21 +153,6 @@
     padding: 0 16px;
   }
 
-  .teacher-prompt-box__toolbar,
-  .teacher-prompt-box__actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .teacher-prompt-picker__item {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .teacher-prompt-box__textarea {
-    min-height: 220px;
-  }
-
   .admin-models-grid,
   .admin-roles-shell,
   .admin-models-shell {
@@ -187,13 +172,19 @@
   .admin-role-user--editable {
     grid-template-columns: 1fr;
   }
-}
 
+    .admin-safety-shell {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 
-@media (max-width: 1200px) {
-  .teacher-create-page {
-    padding: 24px 20px;
-    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
-    column-gap: 24px;
+  .admin-safety-event__top {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-safety-event__actions,
+  .admin-safety-pagination {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

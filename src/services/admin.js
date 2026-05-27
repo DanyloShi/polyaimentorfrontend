@@ -155,44 +155,8 @@ export async function assignUserRole(userId, role) {
   });
 }
 
-export async function getAdminAssistantSystemPrompt(assistantId) {
-  return await apiRequest(endpoints.assistantSystemPrompt(assistantId));
-}
-
-export async function setAdminAssistantSystemPrompt(assistantId, content) {
-  return await apiRequest(endpoints.assistantSystemPrompt(assistantId), {
-    method: "PUT",
-    body: JSON.stringify({ content }),
-  });
-}
-
-export async function deleteAdminAssistantSystemPrompt(assistantId) {
-  return await apiRequest(endpoints.assistantSystemPrompt(assistantId), {
-    method: "DELETE",
-  });
-}
-
-export async function getAdminPromptSourceAssistants(currentAssistantId = "") {
-  const assistants = await getAdminAssistants();
-  const candidates = assistants.filter((assistant) => assistant.id !== currentAssistantId);
-
-  const items = await Promise.all(
-    candidates.map(async (assistant) => {
-      try {
-        const prompt = await getAdminAssistantSystemPrompt(assistant.id);
-        if (!prompt?.content?.trim()) {
-          return null;
-        }
-
-        return {
-          ...assistant,
-          promptPreview: prompt.content.trim().slice(0, 220),
-        };
-      } catch {
-        return null;
-      }
-    }),
+export async function getAdminSafetyEvents(page = 1, pageSize = 20) {
+  return await apiRequest(
+    `${endpoints.adminSafetyEvents}?page=${encodeURIComponent(page)}&page_size=${encodeURIComponent(pageSize)}`,
   );
-
-  return items.filter(Boolean);
 }

@@ -1,4 +1,4 @@
-import { ChevronRight, MessageSquareText, Pencil, Plus, Search, ShieldCheck, Trash2, Upload, UserPlus, X } from "lucide-react";
+import { AlertTriangle, ChevronRight, MessageSquareText, Pencil, Plus, Search, ShieldCheck, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import DeleteAssistantModal from "../components/assistants/DeleteAssistantModal.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
@@ -12,6 +12,7 @@ import {
   getAdminAssistants,
   getAdminAssistantStudents,
   getAdminModels,
+  getAdminSafetyEvents,
   uploadAdminAssistantDocument,
   removeStudentFromAdminAssistant,
   searchAdminStudentsByEmail,
@@ -22,6 +23,7 @@ const adminNavItems = [
   { label: "Асистенти", path: "/admin/assistants" },
   { label: "Моделі", path: "/admin/models" },
   { label: "Ролі", path: "/admin/roles" },
+  { label: "Небезпечні запити", path: "/admin/safety-events" },
 ];
 
 const roleOptions = [
@@ -447,10 +449,6 @@ function AdminModelsTab({ onNavigate }) {
                       <strong>{model.endpoint || "not set"}</strong>
                     </div>
                   ) : null}
-                  <div className="admin-model-line">
-                    <span>Local path</span>
-                    <strong>{model.local_path || "not set"}</strong>
-                  </div>
                 </div>
 
                 <div className="admin-model-limits-preview">
@@ -602,6 +600,7 @@ export default function AdminDashboardPage({ session, onLogout, onNavigate, path
   let activeNav = "/admin/assistants";
   if (path === "/admin/models") activeNav = "/admin/models";
   if (path === "/admin/roles") activeNav = "/admin/roles";
+  if (path === "/admin/safety-events") activeNav = "/admin/safety-events";
 
   return (
     <div className="teacher-page admin-page">
@@ -617,6 +616,169 @@ export default function AdminDashboardPage({ session, onLogout, onNavigate, path
       {activeNav === "/admin/models" ? <AdminModelsTab onNavigate={onNavigate} /> : null}
       {activeNav === "/admin/roles" ? <AdminRolesTab /> : null}
       {activeNav === "/admin/assistants" ? <AdminAssistantsTab onNavigate={onNavigate} /> : null}
+      {activeNav === "/admin/safety-events" ? <AdminSafetyEventsTab onNavigate={onNavigate} /> : null}
     </div>
+  );
+}
+
+function AdminSafetyEventsTab({ onNavigate }) {
+  const [events, setEvents] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, page_size: 12, total: 0 });
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  const page = pagination.page;
+  const pageSize = pagination.page_size;
+  const totalPages = Math.max(1, Math.ceil((pagination.total || 0) / pageSize));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadEvents() {
+      setLoading(true);
+      try {
+        const data = await getAdminSafetyEvents(page, pageSize);
+        if (!cancelled) {
+          setEvents(data.items || []);
+          setPagination(data.pagination || { page, page_size: pageSize, total: 0 });
+          setLoadError("");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setEvents([]);
+          setLoadError(error instanceof Error ? error.message : "Не вдалося завантажити небезпечні запити.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadEvents();
+    return () => {
+      cancelled = true;
+    };
+  }, [page, pageSize]);
+
+  const openStudentChat = (event) => {
+    const params = new URLSearchParams({
+      assistant_id: event.assistant_id,
+      student_id: event.user_id,
+      student_email: event.user_email || "",
+    });
+
+    onNavigate(`/admin/students/chat?${params.toString()}`);
+  };
+
+  const goPrev = () => {
+    if (page > 1) {
+      setPagination((current) => ({ ...current, page: current.page - 1 }));
+    }
+  };
+
+  const goNext = () => {
+    if (page < totalPages) {
+      setPagination((current) => ({ ...current, page: current.page + 1 }));
+    }
+  };
+
+  const shortenPrompt = (prompt, maxLength = 180) => {
+    const normalized = String(prompt || "").replace(/\s+/g, " ").trim();
+    if (normalized.length <= maxLength) return normalized;
+    return `${normalized.slice(0, maxLength).trimEnd()}...`;
+  };
+
+  return (
+    <main className="admin-panel">
+      <header className="admin-panel__header">
+        <div>
+          <p>Моніторинг безпеки</p>
+          <h1>Небезпечні запити студентів</h1>
+        </div>
+      </header>
+
+      <section className="admin-safety-shell">
+        <div className="admin-models-summary">
+          <article className="admin-stat-card">
+            <span>Усього подій</span>
+            <strong>{pagination.total}</strong>
+          </article>
+          <article className="admin-stat-card">
+            <span>Поточна сторінка</span>
+            <strong>{page}</strong>
+          </article>
+          <article className="admin-stat-card">
+            <span>На сторінці</span>
+            <strong>{events.length}</strong>
+          </article>
+        </div>
+
+        {loadError ? <p className="teacher-muted">{loadError}</p> : null}
+
+        <div className="admin-safety-list">
+          {loading ? <p className="teacher-muted">Завантаження...</p> : null}
+          {!loading && events.length === 0 ? <p className="teacher-muted">Небезпечних запитів ще немає.</p> : null}
+
+          {events.map((event) => (
+            <article className="admin-safety-event" key={event.id}>
+              <div className="admin-safety-event__top">
+                <div className="admin-safety-event__meta">
+                  <span>Час</span>
+                  <strong>{new Date(event.created_at).toLocaleString("uk-UA")}</strong>
+                </div>
+
+                <div className="admin-safety-event__meta">
+                  <span>Студент</span>
+                  <strong>{event.user_email || event.user_id}</strong>
+                </div>
+
+                <div className="admin-safety-event__meta">
+                  <span>Асистент</span>
+                  <strong>{event.assistant_title}</strong>
+                </div>
+
+                <div className="admin-safety-event__meta">
+                  <span>Причина</span>
+                  <strong>{event.reason}</strong>
+                </div>
+              </div>
+
+              <div className="admin-safety-event__prompt-box">
+                <div className="admin-safety-event__prompt-label">
+                  <AlertTriangle size={16} />
+                  <span>Промпт</span>
+                </div>
+
+                <p className="admin-safety-event__prompt" title={event.prompt}>
+                  {shortenPrompt(event.prompt)}
+                </p>
+              </div>
+
+              <div className="admin-safety-event__actions">
+                <button className="button button--ghost" type="button" onClick={() => openStudentChat(event)}>
+                  <MessageSquareText size={16} />
+                  Переглянути в чаті
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="admin-safety-pagination">
+          <button className="button button--ghost" type="button" onClick={goPrev} disabled={page <= 1 || loading}>
+            Назад
+          </button>
+
+          <span>
+            Сторінка {page} з {totalPages}
+          </span>
+
+          <button className="button button--ghost" type="button" onClick={goNext} disabled={page >= totalPages || loading}>
+            Далі
+          </button>
+        </div>
+      </section>
+    </main>
   );
 }
