@@ -36,6 +36,8 @@ export default function TeacherAssistantCreatePage({
   const [loadingPrompt, setLoadingPrompt] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
 
+  const [submitError, setSubmitError] = useState("");
+
   const [pickerOpen, setPickerOpen] = useState(false);
   const [copyingFromAssistantId, setCopyingFromAssistantId] = useState("");
 
@@ -90,6 +92,20 @@ export default function TeacherAssistantCreatePage({
     };
   }, [assistantId, isEdit, loadAssistant, getAssistantSystemPrompt, getPromptSourceAssistants]);
 
+  const handleReturn = () => {
+    if (backPath) {
+      onNavigate(backPath);
+      return;
+    }
+
+    if (session?.role === "admin") {
+      onNavigate("/admin/assistants");
+      return;
+    }
+
+    onNavigate("/teacher");
+  };
+
   const handlePickPromptFromAssistant = async (sourceAssistant) => {
     if (!getAssistantSystemPrompt) return;
 
@@ -112,6 +128,8 @@ export default function TeacherAssistantCreatePage({
     if (!normalizedTitle || !modelId || submitting) return;
 
     setSubmitting(true);
+    setSubmitError("");
+
     try {
       let savedAssistant;
 
@@ -135,7 +153,9 @@ export default function TeacherAssistantCreatePage({
         await deleteAssistantSystemPrompt(savedAssistant.id);
       }
 
-      onNavigate(backPath);
+      handleReturn();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Не вдалося зберегти асистента.");
     } finally {
       setSubmitting(false);
     }
@@ -146,7 +166,7 @@ export default function TeacherAssistantCreatePage({
       <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} showPanelShortcut={false} />
 
       <main className="teacher-create-page">
-        <button className="button button--ghost teacher-back teacher-back--compact" type="button" onClick={() => onNavigate(backPath)}>
+        <button className="button button--ghost teacher-back teacher-back--compact" type="button" onClick={handleReturn}>
           <ArrowLeft size={17} />
           Назад
         </button>
@@ -159,6 +179,7 @@ export default function TeacherAssistantCreatePage({
 
         <form className="teacher-create-form" onSubmit={submit}>
           {loading ? <p className="teacher-muted">Завантаження...</p> : null}
+          {submitError ? <p className="teacher-inline-feedback">{submitError}</p> : null}
 
           <label>
             Назва

@@ -121,6 +121,8 @@ export default function App() {
           getAssistantSystemPrompt={getAdminAssistantSystemPrompt}
           setAssistantSystemPrompt={setAdminAssistantSystemPrompt}
           deleteAssistantSystemPrompt={deleteAdminAssistantSystemPrompt}
+          getPromptSourceAssistants={getAdminPromptSourceAssistants}
+          backPath="/admin/assistants"
           eyebrow="Новий асистент"
           titleText="Створення асистента"
           description="Адміністратор може створити нового асистента, а потім додати до нього документи та студентів на сторінці керування."
