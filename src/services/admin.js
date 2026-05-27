@@ -166,8 +166,33 @@ export async function setAdminAssistantSystemPrompt(assistantId, content) {
   });
 }
 
+export async function deleteAdminAssistantSystemPrompt(assistantId) {
+  return await apiRequest(endpoints.assistantSystemPrompt(assistantId), {
+    method: "DELETE",
+  });
+}
+
 export async function getAdminPromptSourceAssistants(currentAssistantId = "") {
   const assistants = await getAdminAssistants();
+  const candidates = assistants.filter((assistant) => assistant.id !== currentAssistantId);
 
-  return assistants.filter((assistant) => assistant.id !== currentAssistantId);
+  const items = await Promise.all(
+    candidates.map(async (assistant) => {
+      try {
+        const prompt = await getAdminAssistantSystemPrompt(assistant.id);
+        if (!prompt?.content?.trim()) {
+          return null;
+        }
+
+        return {
+          ...assistant,
+          promptPreview: prompt.content.trim().slice(0, 220),
+        };
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  return items.filter(Boolean);
 }

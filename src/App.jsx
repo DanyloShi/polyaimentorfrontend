@@ -13,6 +13,7 @@ import {
   getAdminPromptSourceAssistants,
   getAdminStudentChatForAssistant,
   setAdminAssistantSystemPrompt,
+  deleteAdminAssistantSystemPrompt,
   updateAdminAssistant,
 } from "./services/admin.js";
 import {
@@ -23,6 +24,7 @@ import {
   getTeacherAssistantSystemPrompt,
   getTeacherPromptSourceAssistants,
   setTeacherAssistantSystemPrompt,
+  deleteTeacherAssistantSystemPrompt,
   updateTeacherAssistant,
 } from "./services/teacher.js";
 import { getCurrentSession, logoutSession } from "./services/session.js";

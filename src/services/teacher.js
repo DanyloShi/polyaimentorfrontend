@@ -124,8 +124,33 @@ export async function setTeacherAssistantSystemPrompt(assistantId, content) {
   });
 }
 
+export async function deleteTeacherAssistantSystemPrompt(assistantId) {
+  return await apiRequest(endpoints.assistantSystemPrompt(assistantId), {
+    method: "DELETE",
+  });
+}
+
 export async function getTeacherPromptSourceAssistants(currentAssistantId = "") {
   const assistants = await getTeacherAssistants();
+  const candidates = assistants.filter((assistant) => assistant.id !== currentAssistantId);
 
-  return assistants.filter((assistant) => assistant.id !== currentAssistantId);
+  const items = await Promise.all(
+    candidates.map(async (assistant) => {
+      try {
+        const prompt = await getTeacherAssistantSystemPrompt(assistant.id);
+        if (!prompt?.content?.trim()) {
+          return null;
+        }
+
+        return {
+          ...assistant,
+          promptPreview: prompt.content.trim().slice(0, 220),
+        };
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  return items.filter(Boolean);
 }

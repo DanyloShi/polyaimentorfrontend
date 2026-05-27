@@ -12,6 +12,7 @@ export default function TeacherAssistantCreatePage({
   loadAssistant,
   getAssistantSystemPrompt,
   setAssistantSystemPrompt,
+  deleteAssistantSystemPrompt,
   getPromptSourceAssistants,
   assistantId = "",
   mode = "create",
@@ -21,16 +22,21 @@ export default function TeacherAssistantCreatePage({
   description = "Задайте назву, модель, доступність і системний промпт.",
 }) {
   const isEdit = mode === "edit";
+
   const [title, setTitle] = useState("");
   const [modelId, setModelId] = useState("");
   const [isPublic, setIsPublic] = useState(false);
-  const [models, setModels] = useState([]);
-  const [loading, setLoading] = useState(isEdit);
-  const [submitting, setSubmitting] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState("");
+  const [existingPromptId, setExistingPromptId] = useState("");
+
+  const [models, setModels] = useState([]);
   const [sourceAssistants, setSourceAssistants] = useState([]);
-  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const [loading, setLoading] = useState(isEdit);
   const [loadingPrompt, setLoadingPrompt] = useState(isEdit);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [copyingFromAssistantId, setCopyingFromAssistantId] = useState("");
 
   useEffect(() => {
@@ -40,35 +46,40 @@ export default function TeacherAssistantCreatePage({
       setLoading(isEdit);
       setLoadingPrompt(isEdit);
 
-      const [options, assistant, promptSources] = await Promise.all([
-        getAssistantCreateOptions(),
-        isEdit && assistantId && loadAssistant ? loadAssistant(assistantId) : Promise.resolve(null),
-        getPromptSourceAssistants ? getPromptSourceAssistants(assistantId) : Promise.resolve([]),
-      ]);
+      try {
+        const [options, assistant, promptSources] = await Promise.all([
+          getAssistantCreateOptions(),
+          isEdit && assistantId && loadAssistant ? loadAssistant(assistantId) : Promise.resolve(null),
+          getPromptSourceAssistants ? getPromptSourceAssistants(assistantId) : Promise.resolve([]),
+        ]);
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      setModels(options.models || []);
-      setSourceAssistants(promptSources || []);
+        setModels(options.models || []);
+        setSourceAssistants(promptSources || []);
 
-      if (assistant) {
-        setTitle(assistant.title || "");
-        setModelId(assistant.model_id || options.models[0]?.id || "");
-        setIsPublic(Boolean(assistant.is_public));
+        if (assistant) {
+          setTitle(assistant.title || "");
+          setModelId(assistant.model_id || options.models[0]?.id || "");
+          setIsPublic(Boolean(assistant.is_public));
 
-        if (getAssistantSystemPrompt) {
-          const promptResponse = await getAssistantSystemPrompt(assistant.id);
-          if (!cancelled) {
+          if (getAssistantSystemPrompt) {
+            const promptResponse = await getAssistantSystemPrompt(assistant.id);
+            if (cancelled) return;
+
             setSystemPrompt(promptResponse?.content || "");
+            setExistingPromptId(promptResponse?.prompt_id || "");
           }
+        } else {
+          setModelId(options.models[0]?.id || "");
+          setSystemPrompt("");
+          setExistingPromptId("");
         }
-      } else {
-        setModelId(options.models[0]?.id || "");
-      }
-
-      if (!cancelled) {
-        setLoading(false);
-        setLoadingPrompt(false);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          setLoadingPrompt(false);
+        }
       }
     }
 
@@ -84,8 +95,8 @@ export default function TeacherAssistantCreatePage({
 
     setCopyingFromAssistantId(sourceAssistant.id);
     try {
-      const response = await getAssistantSystemPrompt(sourceAssistant.id);
-      setSystemPrompt(response?.content || "");
+      const promptResponse = await getAssistantSystemPrompt(sourceAssistant.id);
+      setSystemPrompt(promptResponse?.content || "");
       setPickerOpen(false);
     } finally {
       setCopyingFromAssistantId("");
@@ -94,6 +105,7 @@ export default function TeacherAssistantCreatePage({
 
   const submit = async (event) => {
     event.preventDefault();
+
     const normalizedTitle = title.trim();
     const normalizedPrompt = systemPrompt.trim();
 
@@ -119,6 +131,8 @@ export default function TeacherAssistantCreatePage({
 
       if (normalizedPrompt && setAssistantSystemPrompt && savedAssistant?.id) {
         await setAssistantSystemPrompt(savedAssistant.id, normalizedPrompt);
+      } else if (!normalizedPrompt && isEdit && existingPromptId && deleteAssistantSystemPrompt && savedAssistant?.id) {
+        await deleteAssistantSystemPrompt(savedAssistant.id);
       }
 
       onNavigate(backPath);
@@ -148,7 +162,11 @@ export default function TeacherAssistantCreatePage({
 
           <label>
             Назва
-            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Наприклад: Математичний асистент" />
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Наприклад: Математичний асистент"
+            />
           </label>
 
           <label>
@@ -169,19 +187,30 @@ export default function TeacherAssistantCreatePage({
 
           <label className="teacher-create-form__prompt">
             Системний промпт
+
             <div className="teacher-prompt-box">
               <div className="teacher-prompt-box__toolbar">
-                <button
-                  type="button"
-                  className="button button--ghost"
-                  onClick={() => setPickerOpen((value) => !value)}
-                >
-                  Вибрати з іншого асистента
-                </button>
-                <span className="teacher-muted">
-                  Тут можна або написати власний промпт, або скопіювати його з іншого доступного асистента.
-                </span>
+                <div className="teacher-prompt-box__actions">
+                  <button
+                    type="button"
+                    className="button button--ghost"
+                    onClick={() => setPickerOpen((value) => !value)}
+                  >
+                    Вибрати з іншого асистента
+                  </button>
+
+                  <button
+                    type="button"
+                    className="button button--ghost"
+                    onClick={() => setSystemPrompt("")}
+                    disabled={!systemPrompt}
+                  >
+                    Очистити
+                  </button>
+                </div>
               </div>
+
+              {loadingPrompt ? <p className="teacher-muted">Завантаження системного промпта...</p> : null}
 
               <textarea
                 value={systemPrompt}
@@ -193,7 +222,7 @@ export default function TeacherAssistantCreatePage({
 
               {pickerOpen ? (
                 <div className="teacher-prompt-picker">
-                  <strong>Доступні асистенти</strong>
+                  <strong>Доступні асистенти з системним промптом</strong>
 
                   {sourceAssistants.length === 0 ? (
                     <p className="teacher-muted">Немає інших доступних асистентів, з яких можна взяти системний промпт.</p>
@@ -201,9 +230,9 @@ export default function TeacherAssistantCreatePage({
                     <div className="teacher-prompt-picker__list">
                       {sourceAssistants.map((assistant) => (
                         <div key={assistant.id} className="teacher-prompt-picker__item">
-                          <div>
+                          <div className="teacher-prompt-picker__meta">
                             <strong>{assistant.title}</strong>
-                            <span className="teacher-muted">ID: {assistant.id}</span>
+                            <p className="teacher-muted teacher-prompt-picker__preview">{assistant.promptPreview}</p>
                           </div>
 
                           <button

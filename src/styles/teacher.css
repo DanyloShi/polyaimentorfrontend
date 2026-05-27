@@ -383,14 +383,16 @@
 .teacher-create-page {
   min-height: 0;
   border-top: 1px solid var(--color-border);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 28px 34px;
   display: grid;
-  grid-template-columns: minmax(240px, 390px) minmax(360px, 620px);
+  grid-template-columns: minmax(240px, 360px) minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
-  column-gap: clamp(42px, 8vw, 110px);
-  row-gap: 34px;
+  column-gap: clamp(28px, 5vw, 72px);
+  row-gap: 28px;
   align-items: start;
+  align-content: start;
 }
 
 .teacher-back {
@@ -409,9 +411,15 @@
 
 .teacher-create-form {
   width: 100%;
+  min-width: 0;
+  max-width: 860px;
   display: grid;
   gap: 20px;
   padding-top: 16px;
+}
+
+.teacher-create-form__prompt {
+  min-width: 0;
 }
 
 .teacher-create-form label {
@@ -536,23 +544,30 @@
   margin-top: 24px;
 }
 
-
 .teacher-prompt-box {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .teacher-prompt-box__toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
 }
 
+.teacher-prompt-box__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .teacher-prompt-box__textarea {
   width: 100%;
-  min-height: 240px;
+  min-height: clamp(220px, 34vh, 360px);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 14px;
@@ -583,7 +598,22 @@
   border-radius: var(--radius-sm);
   padding: 12px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.teacher-prompt-picker__meta {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.teacher-prompt-picker__preview {
+  margin: 0;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
