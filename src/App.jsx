@@ -118,7 +118,9 @@ export default function App() {
           onLogout={handleLogout}
           onNavigate={navigate}
           createAssistant={createAdminAssistant}
-          backPath="/admin/assistants"
+          getAssistantSystemPrompt={getAdminAssistantSystemPrompt}
+          setAssistantSystemPrompt={setAdminAssistantSystemPrompt}
+          deleteAssistantSystemPrompt={deleteAdminAssistantSystemPrompt}
           eyebrow="Новий асистент"
           titleText="Створення асистента"
           description="Адміністратор може створити нового асистента, а потім додати до нього документи та студентів на сторінці керування."
@@ -138,6 +140,10 @@ export default function App() {
           assistantId={adminAssistantEditMatch[1]}
           loadAssistant={getAdminAssistantById}
           updateAssistant={updateAdminAssistant}
+          getAssistantSystemPrompt={getAdminAssistantSystemPrompt}
+          setAssistantSystemPrompt={setAdminAssistantSystemPrompt}
+          deleteAssistantSystemPrompt={deleteAdminAssistantSystemPrompt}
+          getPromptSourceAssistants={getAdminPromptSourceAssistants}
           backPath="/admin/assistants"
           eyebrow="Редагування асистента"
           titleText="Редагування асистента"
@@ -192,6 +198,10 @@ export default function App() {
           onLogout={handleLogout}
           onNavigate={navigate}
           createAssistant={createTeacherAssistant}
+          getAssistantSystemPrompt={getTeacherAssistantSystemPrompt}
+          setAssistantSystemPrompt={setTeacherAssistantSystemPrompt}
+          deleteAssistantSystemPrompt={deleteTeacherAssistantSystemPrompt}
+          getPromptSourceAssistants={getTeacherPromptSourceAssistants}
           backPath="/teacher"
         />
       );
@@ -209,6 +219,10 @@ export default function App() {
           assistantId={teacherAssistantEditMatch[1]}
           loadAssistant={getTeacherAssistantById}
           updateAssistant={updateTeacherAssistant}
+          getAssistantSystemPrompt={getTeacherAssistantSystemPrompt}
+          setAssistantSystemPrompt={setTeacherAssistantSystemPrompt}
+          deleteAssistantSystemPrompt={deleteTeacherAssistantSystemPrompt}
+          getPromptSourceAssistants={getTeacherPromptSourceAssistants}
           backPath="/teacher"
           eyebrow="Редагування асистента"
           titleText="Редагування асистента"
