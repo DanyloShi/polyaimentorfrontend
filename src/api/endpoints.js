@@ -18,4 +18,6 @@ export const endpoints = {
   messages: (conversationId) => `/chat/${conversationId}/messages`,
   models: "/models/",
   modelById: (modelId) => `/models/${modelId}`,
+
+  assistantSystemPrompt: (assistantId) => `/prompts/assistants/${assistantId}/system`,
 };

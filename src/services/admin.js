@@ -154,3 +154,20 @@ export async function assignUserRole(userId, role) {
     body: JSON.stringify({ role }),
   });
 }
+
+export async function getAdminAssistantSystemPrompt(assistantId) {
+  return await apiRequest(endpoints.assistantSystemPrompt(assistantId));
+}
+
+export async function setAdminAssistantSystemPrompt(assistantId, content) {
+  return await apiRequest(endpoints.assistantSystemPrompt(assistantId), {
+    method: "PUT",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function getAdminPromptSourceAssistants(currentAssistantId = "") {
+  const assistants = await getAdminAssistants();
+
+  return assistants.filter((assistant) => assistant.id !== currentAssistantId);
+}

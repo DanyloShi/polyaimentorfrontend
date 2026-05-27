@@ -112,3 +112,20 @@ export async function getStudentChatForAssistant(assistantId, studentId) {
   const data = await apiRequest(`/assistants/${assistantId}/students/${studentId}/conversation`);
   return data.messages || [];
 }
+
+export async function getTeacherAssistantSystemPrompt(assistantId) {
+  return await apiRequest(endpoints.assistantSystemPrompt(assistantId));
+}
+
+export async function setTeacherAssistantSystemPrompt(assistantId, content) {
+  return await apiRequest(endpoints.assistantSystemPrompt(assistantId), {
+    method: "PUT",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function getTeacherPromptSourceAssistants(currentAssistantId = "") {
+  const assistants = await getTeacherAssistants();
+
+  return assistants.filter((assistant) => assistant.id !== currentAssistantId);
+}

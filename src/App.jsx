@@ -9,7 +9,10 @@ import {
   createAdminAssistant,
   deleteAdminAssistant,
   getAdminAssistantById,
+  getAdminAssistantSystemPrompt,
+  getAdminPromptSourceAssistants,
   getAdminStudentChatForAssistant,
+  setAdminAssistantSystemPrompt,
   updateAdminAssistant,
 } from "./services/admin.js";
 import {
@@ -17,6 +20,9 @@ import {
   deleteTeacherAssistant,
   getStudentChatForAssistant,
   getTeacherAssistantById,
+  getTeacherAssistantSystemPrompt,
+  getTeacherPromptSourceAssistants,
+  setTeacherAssistantSystemPrompt,
   updateTeacherAssistant,
 } from "./services/teacher.js";
 import { getCurrentSession, logoutSession } from "./services/session.js";
