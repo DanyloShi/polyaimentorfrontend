@@ -19,4 +19,5 @@ export const endpoints = {
   models: "/models/",
   modelById: (modelId) => `/models/${modelId}`,
   adminSafetyEvents: "/admin/safety-events/",
+  assistantSystemPrompt: (assistantId) => `/prompts/assistants/${assistantId}/system`,
 };
