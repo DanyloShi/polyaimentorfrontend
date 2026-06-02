@@ -133,6 +133,15 @@
     padding-top: 0;
   }
 
+  .teacher-preview-chat {
+    min-height: 420px;
+    height: 520px;
+  }
+
+  .teacher-preview-chat__composer .button {
+    width: 100%;
+  }
+
   .teacher-create-submit {
     width: 100%;
   }

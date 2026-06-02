@@ -14,6 +14,7 @@ export const endpoints = {
   uploadDocument: "/documents/upload",
   deleteDocument: (sourceId) => `/documents/${sourceId}`,
   startConversation: "/chat/start",
+  chatPreview: "/chat/preview",
   conversationByAssistant: (assistantId) => `/chat/by-assistant?assistant_id=${encodeURIComponent(assistantId)}`,
   messages: (conversationId) => `/chat/${conversationId}/messages`,
   models: "/models/",

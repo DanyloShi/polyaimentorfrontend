@@ -7,7 +7,6 @@ import TeacherAssistantCreatePage from "./pages/TeacherAssistantCreatePage.jsx";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage.jsx";
 import {
   createAdminAssistant,
-  deleteAdminAssistant,
   getAdminAssistantById,
   getAdminAssistantSystemPrompt,
   getAdminPromptSourceAssistants,
@@ -18,7 +17,6 @@ import {
 } from "./services/admin.js";
 import {
   createTeacherAssistant,
-  deleteTeacherAssistant,
   getStudentChatForAssistant,
   getTeacherAssistantById,
   getTeacherAssistantSystemPrompt,

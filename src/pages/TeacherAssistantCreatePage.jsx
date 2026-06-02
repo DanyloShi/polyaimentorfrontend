@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppHeader from "../components/header/AppHeader.jsx";
-import { getAssistantCreateOptions } from "../services/teacher.js";
+import { getAssistantCreateOptions, sendAssistantPreviewMessage } from "../services/teacher.js";
 
 export default function TeacherAssistantCreatePage({
   session,
@@ -40,6 +40,11 @@ export default function TeacherAssistantCreatePage({
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [copyingFromAssistantId, setCopyingFromAssistantId] = useState("");
+  const [previewMessages, setPreviewMessages] = useState([]);
+  const [previewInput, setPreviewInput] = useState("");
+  const [previewSending, setPreviewSending] = useState(false);
+  const [previewError, setPreviewError] = useState("");
+  const previewBodyRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -92,6 +97,16 @@ export default function TeacherAssistantCreatePage({
     };
   }, [assistantId, isEdit, loadAssistant, getAssistantSystemPrompt, getPromptSourceAssistants]);
 
+  useEffect(() => {
+    const container = previewBodyRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [previewMessages, previewSending]);
+
   const handleReturn = () => {
     if (backPath) {
       onNavigate(backPath);
@@ -116,6 +131,46 @@ export default function TeacherAssistantCreatePage({
       setPickerOpen(false);
     } finally {
       setCopyingFromAssistantId("");
+    }
+  };
+
+  const sendPreviewMessage = async (event) => {
+    event.preventDefault();
+
+    const normalizedMessage = previewInput.trim();
+    if (!normalizedMessage || !modelId || previewSending) return;
+
+    const createdAt = Date.now();
+    const userMessage = {
+      id: `preview-user-${createdAt}`,
+      role: "user",
+      content: normalizedMessage,
+    };
+
+    setPreviewMessages((messages) => [...messages, userMessage]);
+    setPreviewInput("");
+    setPreviewSending(true);
+    setPreviewError("");
+
+    try {
+      const response = await sendAssistantPreviewMessage({
+        modelId,
+        systemPrompt,
+        message: normalizedMessage,
+      });
+
+      setPreviewMessages((messages) => [
+        ...messages,
+        {
+          id: `preview-assistant-${createdAt}`,
+          role: "assistant",
+          content: response?.content || response?.safety_reason || "Асистент не повернув відповідь.",
+        },
+      ]);
+    } catch (error) {
+      setPreviewError(error instanceof Error ? error.message : "Не вдалося отримати тестову відповідь.");
+    } finally {
+      setPreviewSending(false);
     }
   };
 
@@ -277,6 +332,52 @@ export default function TeacherAssistantCreatePage({
             {submitting ? (isEdit ? "Збереження..." : "Створення...") : isEdit ? "Зберегти зміни" : "Створити асистента"}
           </button>
         </form>
+
+        <aside className="teacher-preview-chat" aria-label="Тест асистента перед публікацією">
+          <header className="teacher-preview-chat__header">
+            <div>
+              <p>Тест асистента</p>
+              <strong>Перевірка перед публікацією</strong>
+            </div>
+          </header>
+
+          <div ref={previewBodyRef} className="teacher-preview-chat__messages">
+            {previewMessages.length === 0 ? (
+              <p className="teacher-preview-chat__empty">
+                Напишіть тестове питання, щоб перевірити поточну модель і системний промпт.
+              </p>
+            ) : (
+              previewMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`teacher-chat-message teacher-chat-message--${message.role}`}
+                >
+                  {message.content}
+                </div>
+              ))
+            )}
+            {previewSending ? <p className="teacher-muted">Асистент відповідає...</p> : null}
+          </div>
+
+          {previewError ? <p className="teacher-preview-chat__error">{previewError}</p> : null}
+
+          <form className="teacher-preview-chat__composer" onSubmit={sendPreviewMessage}>
+            <textarea
+              value={previewInput}
+              onChange={(event) => setPreviewInput(event.target.value)}
+              placeholder="Тестове повідомлення"
+              rows={3}
+              disabled={previewSending || !modelId}
+            />
+            <button
+              className="button button--dark"
+              type="submit"
+              disabled={previewSending || !previewInput.trim() || !modelId}
+            >
+              {previewSending ? "Надсилання..." : "Відправити"}
+            </button>
+          </form>
+        </aside>
       </main>
     </div>
   );

@@ -38,6 +38,17 @@ export async function createTeacherAssistant({ title, modelId, isPublic }) {
   });
 }
 
+export async function sendAssistantPreviewMessage({ modelId, systemPrompt, message }) {
+  return await apiRequest(endpoints.chatPreview, {
+    method: "POST",
+    body: JSON.stringify({
+      model_id: modelId,
+      system_prompt: systemPrompt,
+      message,
+    }),
+  });
+}
+
 export async function getAssistantCreateOptions() {
   const data = await apiRequest(endpoints.models);
   return {
