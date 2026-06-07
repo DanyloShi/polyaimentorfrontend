@@ -380,6 +380,10 @@
   font-size: 14px;
 }
 
+.teacher-inline-feedback--danger {
+  color: var(--color-danger);
+}
+
 .teacher-create-page {
   min-height: 0;
   border-top: 1px solid var(--color-border);
@@ -642,6 +646,10 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.teacher-prompt-box__file {
+  display: none;
 }
 
 .teacher-prompt-box__textarea {

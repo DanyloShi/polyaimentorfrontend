@@ -3,6 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import AppHeader from "../components/header/AppHeader.jsx";
 import { getAssistantCreateOptions, sendAssistantPreviewMessage } from "../services/teacher.js";
 
+const SYSTEM_PROMPT_MAX_LENGTH = 20000;
+
+function isMarkdownFile(file) {
+  const name = file.name.toLowerCase();
+  return name.endsWith(".md") || file.type === "text/markdown";
+}
+
 export default function TeacherAssistantCreatePage({
   session,
   onLogout,
@@ -40,11 +47,13 @@ export default function TeacherAssistantCreatePage({
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [copyingFromAssistantId, setCopyingFromAssistantId] = useState("");
+  const [promptFileError, setPromptFileError] = useState("");
   const [previewMessages, setPreviewMessages] = useState([]);
   const [previewInput, setPreviewInput] = useState("");
   const [previewSending, setPreviewSending] = useState(false);
   const [previewError, setPreviewError] = useState("");
   const previewBodyRef = useRef(null);
+  const promptFileInputRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,9 +137,42 @@ export default function TeacherAssistantCreatePage({
     try {
       const promptResponse = await getAssistantSystemPrompt(sourceAssistant.id);
       setSystemPrompt(promptResponse?.content || "");
+      setPromptFileError("");
       setPickerOpen(false);
     } finally {
       setCopyingFromAssistantId("");
+    }
+  };
+
+  const handlePromptFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    setPromptFileError("");
+
+    if (!isMarkdownFile(file)) {
+      setPromptFileError("Оберіть файл у форматі .md.");
+      return;
+    }
+
+    try {
+      const content = await file.text();
+      const normalizedContent = content.trim();
+
+      if (!normalizedContent) {
+        setPromptFileError("Файл порожній.");
+        return;
+      }
+
+      if (normalizedContent.length > SYSTEM_PROMPT_MAX_LENGTH) {
+        setPromptFileError(`Файл завеликий: максимум ${SYSTEM_PROMPT_MAX_LENGTH} символів.`);
+        return;
+      }
+
+      setSystemPrompt(normalizedContent);
+    } catch {
+      setPromptFileError("Не вдалося прочитати файл.");
     }
   };
 
@@ -278,7 +320,26 @@ export default function TeacherAssistantCreatePage({
                   <button
                     type="button"
                     className="button button--ghost"
-                    onClick={() => setSystemPrompt("")}
+                    onClick={() => promptFileInputRef.current?.click()}
+                  >
+                    Завантажити .md
+                  </button>
+
+                  <input
+                    ref={promptFileInputRef}
+                    className="teacher-prompt-box__file"
+                    type="file"
+                    accept=".md,text/markdown"
+                    onChange={handlePromptFileChange}
+                  />
+
+                  <button
+                    type="button"
+                    className="button button--ghost"
+                    onClick={() => {
+                      setSystemPrompt("");
+                      setPromptFileError("");
+                    }}
                     disabled={!systemPrompt}
                   >
                     Очистити
@@ -287,6 +348,7 @@ export default function TeacherAssistantCreatePage({
               </div>
 
               {loadingPrompt ? <p className="teacher-muted">Завантаження системного промпта...</p> : null}
+              {promptFileError ? <p className="teacher-inline-feedback teacher-inline-feedback--danger">{promptFileError}</p> : null}
 
               <textarea
                 value={systemPrompt}
