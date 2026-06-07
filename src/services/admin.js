@@ -45,6 +45,13 @@ export async function getAdminAssistantGroups() {
   return data.items || [];
 }
 
+export async function createAdminAssistantGroup({ title }) {
+  return await apiRequest(endpoints.assistantGroups, {
+    method: "POST",
+    body: JSON.stringify({ title }),
+  });
+}
+
 export async function updateAdminAssistantGroup(groupId, { title }) {
   return await apiRequest(`${endpoints.assistantGroups}${groupId}`, {
     method: "PATCH",

@@ -34,6 +34,12 @@
   color: var(--color-muted);
 }
 
+.teacher-sidebar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .teacher-assistant-list {
   min-height: 0;
   overflow-y: auto;
@@ -516,13 +522,6 @@
 .teacher-group-box {
   display: grid;
   gap: 10px;
-}
-
-.teacher-group-box__create {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
 }
 
 .teacher-create-submit {

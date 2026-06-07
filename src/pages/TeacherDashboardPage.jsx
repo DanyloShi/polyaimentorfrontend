@@ -1,4 +1,4 @@
-import { Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
+import { FolderPlus, Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import AssistantGroupEditModal from "../components/assistants/AssistantGroupEditModal.jsx";
 import AssistantTreeList from "../components/assistants/AssistantTreeList.jsx";
@@ -6,6 +6,7 @@ import DeleteAssistantModal from "../components/assistants/DeleteAssistantModal.
 import AppHeader from "../components/header/AppHeader.jsx";
 import {
   addStudentToAssistant,
+  createAssistantGroup,
   deleteAssistantDocument,
   deleteAssistantGroupSystemPrompt,
   deleteTeacherAssistant,
@@ -46,6 +47,7 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
 
   const [deletingAssistant, setDeletingAssistant] = useState(null);
   const [deletingAssistantPending, setDeletingAssistantPending] = useState(false);
+  const [creatingGroup, setCreatingGroup] = useState(null);
   const [editingGroup, setEditingGroup] = useState(null);
   const [editingGroupPrompt, setEditingGroupPrompt] = useState("");
   const [savingGroup, setSavingGroup] = useState(false);
@@ -200,6 +202,20 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
     }
   };
 
+  const saveNewGroup = async ({ title, prompt }) => {
+    setSavingGroup(true);
+    try {
+      const group = await createAssistantGroup({ title });
+      if (prompt) {
+        await setAssistantGroupSystemPrompt(group.id, prompt);
+      }
+      setAssistantGroups((groups) => [group, ...groups.filter((item) => item.id !== group.id)]);
+      setCreatingGroup(null);
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
   const saveGroup = async ({ title, prompt }) => {
     if (!editingGroup) return;
 
@@ -227,9 +243,14 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
         <aside className="teacher-sidebar">
           <div className="teacher-sidebar__header">
             <span>Мої асистенти</span>
-            <button className="icon-button" type="button" aria-label="Створити асистента" onClick={() => onNavigate("/teacher/assistants/new")}>
-              <Plus size={18} />
-            </button>
+            <div className="teacher-sidebar__actions">
+              <button className="icon-button" type="button" aria-label="Створити групу" onClick={() => setCreatingGroup({ id: "new", title: "" })}>
+                <FolderPlus size={18} />
+              </button>
+              <button className="icon-button" type="button" aria-label="Створити асистента" onClick={() => onNavigate("/teacher/assistants/new")}>
+                <Plus size={18} />
+              </button>
+            </div>
           </div>
 
           <div className="teacher-assistant-list">
@@ -371,6 +392,15 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
         saving={savingGroup}
         onCancel={() => setEditingGroup(null)}
         onSave={saveGroup}
+      />
+      <AssistantGroupEditModal
+        key={creatingGroup?.id || "empty-create"}
+        group={creatingGroup}
+        initialPrompt=""
+        saving={savingGroup}
+        titleText="Створити групу"
+        onCancel={() => setCreatingGroup(null)}
+        onSave={saveNewGroup}
       />
     </div>
   );

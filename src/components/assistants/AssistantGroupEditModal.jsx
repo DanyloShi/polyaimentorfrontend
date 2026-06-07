@@ -8,7 +8,7 @@ function isMarkdownFile(file) {
   return name.endsWith(".md") || file.type === "text/markdown";
 }
 
-export default function AssistantGroupEditModal({ group, initialPrompt, saving, onCancel, onSave }) {
+export default function AssistantGroupEditModal({ group, initialPrompt, saving, titleText = "Редагувати групу", onCancel, onSave }) {
   const [title, setTitle] = useState(group?.title || "");
   const [prompt, setPrompt] = useState(initialPrompt || "");
   const [fileError, setFileError] = useState("");
@@ -63,7 +63,7 @@ export default function AssistantGroupEditModal({ group, initialPrompt, saving, 
           <X size={18} />
         </button>
 
-        <h2>Редагувати групу</h2>
+        <h2>{titleText}</h2>
 
         <form className="teacher-group-modal__form" onSubmit={submit}>
           <label>

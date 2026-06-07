@@ -2,11 +2,8 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import AppHeader from "../components/header/AppHeader.jsx";
 import {
-  createAssistantGroup,
   getAssistantCreateOptions,
-  getAssistantGroupSystemPrompt,
   sendAssistantPreviewMessage,
-  setAssistantGroupSystemPrompt,
 } from "../services/teacher.js";
 
 const SYSTEM_PROMPT_MAX_LENGTH = 20000;
@@ -40,7 +37,6 @@ export default function TeacherAssistantCreatePage({
   const [modelId, setModelId] = useState("");
   const [assistantGroupId, setAssistantGroupId] = useState("");
   const [isPublic, setIsPublic] = useState(false);
-  const [groupSystemPrompt, setGroupSystemPrompt] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
   const [existingPromptId, setExistingPromptId] = useState("");
 
@@ -50,13 +46,9 @@ export default function TeacherAssistantCreatePage({
 
   const [loading, setLoading] = useState(isEdit);
   const [loadingPrompt, setLoadingPrompt] = useState(isEdit);
-  const [loadingGroupPrompt, setLoadingGroupPrompt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const [submitError, setSubmitError] = useState("");
-  const [groupPromptError, setGroupPromptError] = useState("");
-  const [newGroupTitle, setNewGroupTitle] = useState("");
-  const [creatingGroup, setCreatingGroup] = useState(false);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [copyingFromAssistantId, setCopyingFromAssistantId] = useState("");
@@ -123,43 +115,6 @@ export default function TeacherAssistantCreatePage({
   }, [assistantId, isEdit, loadAssistant, getAssistantSystemPrompt, getPromptSourceAssistants]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadGroupPrompt() {
-      if (!assistantGroupId) {
-        setGroupSystemPrompt("");
-        setGroupPromptError("");
-        return;
-      }
-
-      setLoadingGroupPrompt(true);
-      setGroupPromptError("");
-
-      try {
-        const promptResponse = await getAssistantGroupSystemPrompt(assistantGroupId);
-        if (!cancelled) {
-          setGroupSystemPrompt(promptResponse?.content || "");
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setGroupSystemPrompt("");
-          setGroupPromptError(error instanceof Error ? error.message : "Не вдалося завантажити промпт групи.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingGroupPrompt(false);
-        }
-      }
-    }
-
-    loadGroupPrompt();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [assistantGroupId]);
-
-  useEffect(() => {
     const container = previewBodyRef.current;
     if (!container) return;
 
@@ -194,25 +149,6 @@ export default function TeacherAssistantCreatePage({
       setPickerOpen(false);
     } finally {
       setCopyingFromAssistantId("");
-    }
-  };
-
-  const handleCreateGroup = async () => {
-    const normalizedTitle = newGroupTitle.trim();
-    if (!normalizedTitle || creatingGroup) return;
-
-    setCreatingGroup(true);
-    setGroupPromptError("");
-
-    try {
-      const group = await createAssistantGroup({ title: normalizedTitle });
-      setAssistantGroups((groups) => [group, ...groups.filter((item) => item.id !== group.id)]);
-      setAssistantGroupId(group.id);
-      setNewGroupTitle("");
-    } catch (error) {
-      setGroupPromptError(error instanceof Error ? error.message : "Не вдалося створити групу.");
-    } finally {
-      setCreatingGroup(false);
     }
   };
 
@@ -270,7 +206,7 @@ export default function TeacherAssistantCreatePage({
       const response = await sendAssistantPreviewMessage({
         modelId,
         assistantGroupId,
-        groupSystemPrompt,
+        groupSystemPrompt: "",
         systemPrompt,
         message: normalizedMessage,
       });
@@ -318,10 +254,6 @@ export default function TeacherAssistantCreatePage({
           assistantGroupId,
           isPublic,
         });
-      }
-
-      if (assistantGroupId && groupSystemPrompt.trim()) {
-        await setAssistantGroupSystemPrompt(assistantGroupId, groupSystemPrompt.trim());
       }
 
       if (normalizedPrompt && setAssistantSystemPrompt && savedAssistant?.id) {
@@ -390,46 +322,12 @@ export default function TeacherAssistantCreatePage({
                 ))}
               </select>
             </label>
-
-            <div className="teacher-group-box__create">
-              <input
-                value={newGroupTitle}
-                onChange={(event) => setNewGroupTitle(event.target.value)}
-                placeholder="Назва нової групи"
-                disabled={creatingGroup}
-              />
-              <button
-                type="button"
-                className="button button--ghost"
-                onClick={handleCreateGroup}
-                disabled={creatingGroup || !newGroupTitle.trim()}
-              >
-                {creatingGroup ? "Створення..." : "Створити групу"}
-              </button>
-            </div>
-
-            {groupPromptError ? <p className="teacher-inline-feedback teacher-inline-feedback--danger">{groupPromptError}</p> : null}
           </div>
 
           <label className="teacher-checkbox">
             <input type="checkbox" checked={isPublic} onChange={(event) => setIsPublic(event.target.checked)} />
             Зробити асистента публічним
           </label>
-
-          {assistantGroupId ? (
-            <label className="teacher-create-form__prompt">
-              Системний промпт групи
-              {loadingGroupPrompt ? <p className="teacher-muted">Завантаження промпта групи...</p> : null}
-              <textarea
-                value={groupSystemPrompt}
-                onChange={(event) => setGroupSystemPrompt(event.target.value)}
-                placeholder="Правила, які мають виконувати всі асистенти цієї групи."
-                rows={7}
-                className="teacher-prompt-box__textarea teacher-prompt-box__textarea--compact"
-                disabled={loadingGroupPrompt}
-              />
-            </label>
-          ) : null}
 
           <label className="teacher-create-form__prompt">
             Системний промпт

@@ -142,10 +142,6 @@
     width: 100%;
   }
 
-  .teacher-group-box__create {
-    grid-template-columns: 1fr;
-  }
-
   .teacher-create-submit {
     width: 100%;
   }
