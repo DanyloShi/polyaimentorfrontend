@@ -40,6 +40,35 @@ export async function createAdminAssistant({ title, modelId, assistantGroupId, i
   });
 }
 
+export async function getAdminAssistantGroups() {
+  const data = await apiRequest(endpoints.assistantGroups);
+  return data.items || [];
+}
+
+export async function updateAdminAssistantGroup(groupId, { title }) {
+  return await apiRequest(`${endpoints.assistantGroups}${groupId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title }),
+  });
+}
+
+export async function getAdminAssistantGroupSystemPrompt(groupId) {
+  return await apiRequest(endpoints.assistantGroupSystemPrompt(groupId));
+}
+
+export async function setAdminAssistantGroupSystemPrompt(groupId, content) {
+  return await apiRequest(endpoints.assistantGroupSystemPrompt(groupId), {
+    method: "PUT",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function deleteAdminAssistantGroupSystemPrompt(groupId) {
+  return await apiRequest(endpoints.assistantGroupSystemPrompt(groupId), {
+    method: "DELETE",
+  });
+}
+
 export async function getAdminAssistantDocuments(assistantId) {
   const data = await apiRequest(`${endpoints.documents}?assistant_id=${encodeURIComponent(assistantId)}`);
   return data.items || [];

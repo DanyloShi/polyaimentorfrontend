@@ -76,6 +76,13 @@ export async function createAssistantGroup({ title }) {
   });
 }
 
+export async function updateAssistantGroup(groupId, { title }) {
+  return await apiRequest(`${endpoints.assistantGroups}${groupId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title }),
+  });
+}
+
 export async function getAssistantGroupSystemPrompt(groupId) {
   return await apiRequest(endpoints.assistantGroupSystemPrompt(groupId));
 }
@@ -84,6 +91,12 @@ export async function setAssistantGroupSystemPrompt(groupId, content) {
   return await apiRequest(endpoints.assistantGroupSystemPrompt(groupId), {
     method: "PUT",
     body: JSON.stringify({ content }),
+  });
+}
+
+export async function deleteAssistantGroupSystemPrompt(groupId) {
+  return await apiRequest(endpoints.assistantGroupSystemPrompt(groupId), {
+    method: "DELETE",
   });
 }
 

@@ -1,16 +1,23 @@
-import { Pencil, Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
+import { Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import AssistantGroupEditModal from "../components/assistants/AssistantGroupEditModal.jsx";
+import AssistantTreeList from "../components/assistants/AssistantTreeList.jsx";
 import DeleteAssistantModal from "../components/assistants/DeleteAssistantModal.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
 import {
   addStudentToAssistant,
   deleteAssistantDocument,
+  deleteAssistantGroupSystemPrompt,
   deleteTeacherAssistant,
+  getAssistantGroupSystemPrompt,
+  getAssistantGroups,
   getAssistantDocuments,
   getAssistantStudents,
   getTeacherAssistants,
   removeStudentFromAssistant,
   searchStudentsByEmail,
+  setAssistantGroupSystemPrompt,
+  updateAssistantGroup,
   uploadAssistantDocument,
 } from "../services/teacher.js";
 
@@ -24,6 +31,7 @@ const statusLabels = {
 
 export default function TeacherDashboardPage({ session, onLogout, onNavigate }) {
   const [assistants, setAssistants] = useState([]);
+  const [assistantGroups, setAssistantGroups] = useState([]);
   const [activeAssistant, setActiveAssistant] = useState(null);
   const [activePanel, setActivePanel] = useState("documents");
   const [documents, setDocuments] = useState([]);
@@ -38,15 +46,22 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
 
   const [deletingAssistant, setDeletingAssistant] = useState(null);
   const [deletingAssistantPending, setDeletingAssistantPending] = useState(false);
+  const [editingGroup, setEditingGroup] = useState(null);
+  const [editingGroupPrompt, setEditingGroupPrompt] = useState("");
+  const [savingGroup, setSavingGroup] = useState(false);
 
   const reloadAssistants = async (preferredAssistantId = null) => {
-    const loadedAssistants = await getTeacherAssistants();
+    const [loadedAssistants, loadedGroups] = await Promise.all([
+      getTeacherAssistants(),
+      getAssistantGroups(),
+    ]);
     const nextActiveAssistant =
       loadedAssistants.find((assistant) => assistant.id === preferredAssistantId) ||
       loadedAssistants[0] ||
       null;
 
     setAssistants(loadedAssistants);
+    setAssistantGroups(loadedGroups);
     setActiveAssistant(nextActiveAssistant);
     await loadAssistantDetails(nextActiveAssistant);
   };
@@ -91,11 +106,15 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
     let cancelled = false;
 
     async function loadAssistants() {
-      const loadedAssistants = await getTeacherAssistants();
+      const [loadedAssistants, loadedGroups] = await Promise.all([
+        getTeacherAssistants(),
+        getAssistantGroups(),
+      ]);
       if (cancelled) return;
 
       const firstAssistant = loadedAssistants[0] || null;
       setAssistants(loadedAssistants);
+      setAssistantGroups(loadedGroups);
       setActiveAssistant(firstAssistant);
       await loadAssistantDetails(firstAssistant);
     }
@@ -168,6 +187,38 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
     }
   };
 
+  const openEditGroup = async (group) => {
+    setEditingGroupPrompt("");
+
+    try {
+      const prompt = await getAssistantGroupSystemPrompt(group.id);
+      setEditingGroupPrompt(prompt?.content || "");
+    } catch {
+      setEditingGroupPrompt("");
+    } finally {
+      setEditingGroup(group);
+    }
+  };
+
+  const saveGroup = async ({ title, prompt }) => {
+    if (!editingGroup) return;
+
+    setSavingGroup(true);
+    try {
+      const updatedGroup = await updateAssistantGroup(editingGroup.id, { title });
+      if (prompt) {
+        await setAssistantGroupSystemPrompt(editingGroup.id, prompt);
+      } else {
+        await deleteAssistantGroupSystemPrompt(editingGroup.id);
+      }
+      setAssistantGroups((groups) => groups.map((group) => (group.id === updatedGroup.id ? updatedGroup : group)));
+      setEditingGroup(null);
+      setEditingGroupPrompt("");
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
   return (
     <div className="teacher-page">
       <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} showPanelShortcut={false} />
@@ -182,22 +233,15 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
           </div>
 
           <div className="teacher-assistant-list">
-            {assistants.map((assistant) => (
-              <div className={`teacher-assistant-row ${assistant.id === activeAssistant?.id ? "teacher-assistant-row--active" : ""}`} key={assistant.id}>
-                <button className="teacher-assistant" type="button" onClick={() => selectAssistant(assistant)}>
-                  {assistant.title}
-                </button>
-
-                <div className="teacher-assistant__actions">
-                  <button className="icon-button" type="button" aria-label="Редагувати асистента" onClick={() => onNavigate(`/teacher/assistants/${assistant.id}/edit`)}>
-                    <Pencil size={16} />
-                  </button>
-                  <button className="icon-button teacher-icon-button--danger" type="button" aria-label="Видалити асистента" onClick={() => setDeletingAssistant(assistant)}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
+            <AssistantTreeList
+              assistants={assistants}
+              groups={assistantGroups}
+              activeAssistantId={activeAssistant?.id || ""}
+              onSelectAssistant={selectAssistant}
+              onEditAssistant={(assistant) => onNavigate(`/teacher/assistants/${assistant.id}/edit`)}
+              onDeleteAssistant={setDeletingAssistant}
+              onEditGroup={openEditGroup}
+            />
           </div>
         </aside>
 
@@ -319,6 +363,14 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
         deleting={deletingAssistantPending}
         onCancel={() => setDeletingAssistant(null)}
         onConfirm={confirmDeleteAssistant}
+      />
+      <AssistantGroupEditModal
+        key={editingGroup?.id || "empty"}
+        group={editingGroup}
+        initialPrompt={editingGroupPrompt}
+        saving={savingGroup}
+        onCancel={() => setEditingGroup(null)}
+        onSave={saveGroup}
       />
     </div>
   );

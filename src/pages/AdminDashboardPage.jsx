@@ -1,12 +1,17 @@
-import { AlertTriangle, ChevronRight, MessageSquareText, Pencil, Plus, Search, ShieldCheck, Trash2, Upload, UserPlus, X } from "lucide-react";
+import { AlertTriangle, ChevronRight, MessageSquareText, Plus, Search, ShieldCheck, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import AssistantGroupEditModal from "../components/assistants/AssistantGroupEditModal.jsx";
+import AssistantTreeList from "../components/assistants/AssistantTreeList.jsx";
 import DeleteAssistantModal from "../components/assistants/DeleteAssistantModal.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
 import {
   addStudentToAdminAssistant,
   assignUserRole,
+  deleteAdminAssistantGroupSystemPrompt,
   deleteAdminAssistant,
   deleteAdminAssistantDocument,
+  getAdminAssistantGroups,
+  getAdminAssistantGroupSystemPrompt,
   deleteAdminModel,
   getAdminAssistantDocuments,
   getAdminAssistants,
@@ -17,6 +22,8 @@ import {
   removeStudentFromAdminAssistant,
   searchAdminStudentsByEmail,
   searchUsers,
+  setAdminAssistantGroupSystemPrompt,
+  updateAdminAssistantGroup,
 } from "../services/admin.js";
 
 const adminNavItems = [
@@ -43,6 +50,7 @@ const statusLabels = {
 
 function AdminAssistantsTab({ onNavigate }) {
   const [assistants, setAssistants] = useState([]);
+  const [assistantGroups, setAssistantGroups] = useState([]);
   const [activeAssistant, setActiveAssistant] = useState(null);
   const [activePanel, setActivePanel] = useState("documents");
   const [documents, setDocuments] = useState([]);
@@ -57,15 +65,22 @@ function AdminAssistantsTab({ onNavigate }) {
 
   const [deletingAssistant, setDeletingAssistant] = useState(null);
   const [deletingAssistantPending, setDeletingAssistantPending] = useState(false);
+  const [editingGroup, setEditingGroup] = useState(null);
+  const [editingGroupPrompt, setEditingGroupPrompt] = useState("");
+  const [savingGroup, setSavingGroup] = useState(false);
 
   const reloadAssistants = async (preferredAssistantId = null) => {
-    const loadedAssistants = await getAdminAssistants();
+    const [loadedAssistants, loadedGroups] = await Promise.all([
+      getAdminAssistants(),
+      getAdminAssistantGroups(),
+    ]);
     const nextActiveAssistant =
       loadedAssistants.find((assistant) => assistant.id === preferredAssistantId) ||
       loadedAssistants[0] ||
       null;
 
     setAssistants(loadedAssistants);
+    setAssistantGroups(loadedGroups);
     setActiveAssistant(nextActiveAssistant);
     await loadAssistantDetails(nextActiveAssistant);
   };
@@ -110,10 +125,14 @@ function AdminAssistantsTab({ onNavigate }) {
     let cancelled = false;
 
     async function loadAssistants() {
-      const loadedAssistants = await getAdminAssistants();
+      const [loadedAssistants, loadedGroups] = await Promise.all([
+        getAdminAssistants(),
+        getAdminAssistantGroups(),
+      ]);
       if (cancelled) return;
       const firstAssistant = loadedAssistants[0] || null;
       setAssistants(loadedAssistants);
+      setAssistantGroups(loadedGroups);
       setActiveAssistant(firstAssistant);
       await loadAssistantDetails(firstAssistant);
     }
@@ -196,6 +215,38 @@ function AdminAssistantsTab({ onNavigate }) {
     onNavigate(`/admin/students/chat?${params.toString()}`);
   };
 
+  const openEditGroup = async (group) => {
+    setEditingGroupPrompt("");
+
+    try {
+      const prompt = await getAdminAssistantGroupSystemPrompt(group.id);
+      setEditingGroupPrompt(prompt?.content || "");
+    } catch {
+      setEditingGroupPrompt("");
+    } finally {
+      setEditingGroup(group);
+    }
+  };
+
+  const saveGroup = async ({ title, prompt }) => {
+    if (!editingGroup) return;
+
+    setSavingGroup(true);
+    try {
+      const updatedGroup = await updateAdminAssistantGroup(editingGroup.id, { title });
+      if (prompt) {
+        await setAdminAssistantGroupSystemPrompt(editingGroup.id, prompt);
+      } else {
+        await deleteAdminAssistantGroupSystemPrompt(editingGroup.id);
+      }
+      setAssistantGroups((groups) => groups.map((group) => (group.id === updatedGroup.id ? updatedGroup : group)));
+      setEditingGroup(null);
+      setEditingGroupPrompt("");
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
   return (
     <div className="teacher-page__content">
       <aside className="teacher-sidebar">
@@ -207,22 +258,15 @@ function AdminAssistantsTab({ onNavigate }) {
         </div>
 
         <div className="teacher-assistant-list">
-          {assistants.map((assistant) => (
-            <div className={`teacher-assistant-row ${assistant.id === activeAssistant?.id ? "teacher-assistant-row--active" : ""}`} key={assistant.id}>
-              <button className="teacher-assistant" type="button" onClick={() => selectAssistant(assistant)}>
-                {assistant.title}
-              </button>
-
-              <div className="teacher-assistant__actions">
-                <button className="icon-button" type="button" aria-label="Редагувати асистента" onClick={() => onNavigate(`/admin/assistants/${assistant.id}/edit`)}>
-                  <Pencil size={16} />
-                </button>
-                <button className="icon-button teacher-icon-button--danger" type="button" aria-label="Видалити асистента" onClick={() => setDeletingAssistant(assistant)}>
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
+          <AssistantTreeList
+            assistants={assistants}
+            groups={assistantGroups}
+            activeAssistantId={activeAssistant?.id || ""}
+            onSelectAssistant={selectAssistant}
+            onEditAssistant={(assistant) => onNavigate(`/admin/assistants/${assistant.id}/edit`)}
+            onDeleteAssistant={setDeletingAssistant}
+            onEditGroup={openEditGroup}
+          />
         </div>
       </aside>
 
@@ -347,6 +391,14 @@ function AdminAssistantsTab({ onNavigate }) {
         deleting={deletingAssistantPending}
         onCancel={() => setDeletingAssistant(null)}
         onConfirm={confirmDeleteAssistant}
+      />
+      <AssistantGroupEditModal
+        key={editingGroup?.id || "empty"}
+        group={editingGroup}
+        initialPrompt={editingGroupPrompt}
+        saving={savingGroup}
+        onCancel={() => setEditingGroup(null)}
+        onSave={saveGroup}
       />
     </div>
   );
