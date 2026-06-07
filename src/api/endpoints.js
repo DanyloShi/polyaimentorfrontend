@@ -9,6 +9,7 @@ export const endpoints = {
   googleStart: "/auth/google/start",
   publicAssistants: "/assistants/public",
   privateAssistants: "/assistants/",
+  assistantGroups: "/assistant-groups/",
   assistantAccess: (assistantId) => `/assistants/${assistantId}/access`,
   documents: "/documents/",
   uploadDocument: "/documents/upload",
@@ -21,4 +22,5 @@ export const endpoints = {
   modelById: (modelId) => `/models/${modelId}`,
   adminSafetyEvents: "/admin/safety-events/",
   assistantSystemPrompt: (assistantId) => `/prompts/assistants/${assistantId}/system`,
+  assistantGroupSystemPrompt: (groupId) => `/prompts/assistant-groups/${groupId}/system`,
 };

@@ -10,12 +10,13 @@ export async function getTeacherAssistantById(assistantId) {
   return await apiRequest(`/assistants/${assistantId}`);
 }
 
-export async function updateTeacherAssistant(assistantId, { title, modelId, isPublic }) {
+export async function updateTeacherAssistant(assistantId, { title, modelId, assistantGroupId, isPublic }) {
   return await apiRequest(`/assistants/${assistantId}`, {
     method: "PATCH",
     body: JSON.stringify({
       title,
       model_id: modelId,
+      assistant_group_id: assistantGroupId || null,
       is_public: isPublic,
     }),
   });
@@ -27,22 +28,25 @@ export async function deleteTeacherAssistant(assistantId) {
   });
 }
 
-export async function createTeacherAssistant({ title, modelId, isPublic }) {
+export async function createTeacherAssistant({ title, modelId, assistantGroupId, isPublic }) {
   return await apiRequest(endpoints.privateAssistants, {
     method: "POST",
     body: JSON.stringify({
       title,
       model_id: modelId,
+      assistant_group_id: assistantGroupId || null,
       is_public: isPublic,
     }),
   });
 }
 
-export async function sendAssistantPreviewMessage({ modelId, systemPrompt, message }) {
+export async function sendAssistantPreviewMessage({ modelId, assistantGroupId, groupSystemPrompt, systemPrompt, message }) {
   return await apiRequest(endpoints.chatPreview, {
     method: "POST",
     body: JSON.stringify({
       model_id: modelId,
+      assistant_group_id: assistantGroupId || null,
+      group_system_prompt: groupSystemPrompt,
       system_prompt: systemPrompt,
       message,
     }),
@@ -50,10 +54,37 @@ export async function sendAssistantPreviewMessage({ modelId, systemPrompt, messa
 }
 
 export async function getAssistantCreateOptions() {
-  const data = await apiRequest(endpoints.models);
+  const [modelsData, groups] = await Promise.all([
+    apiRequest(endpoints.models),
+    getAssistantGroups(),
+  ]);
   return {
-    models: data.items || [],
+    models: modelsData.items || [],
+    groups,
   };
+}
+
+export async function getAssistantGroups() {
+  const data = await apiRequest(endpoints.assistantGroups);
+  return data.items || [];
+}
+
+export async function createAssistantGroup({ title }) {
+  return await apiRequest(endpoints.assistantGroups, {
+    method: "POST",
+    body: JSON.stringify({ title }),
+  });
+}
+
+export async function getAssistantGroupSystemPrompt(groupId) {
+  return await apiRequest(endpoints.assistantGroupSystemPrompt(groupId));
+}
+
+export async function setAssistantGroupSystemPrompt(groupId, content) {
+  return await apiRequest(endpoints.assistantGroupSystemPrompt(groupId), {
+    method: "PUT",
+    body: JSON.stringify({ content }),
+  });
 }
 
 export async function getAssistantDocuments(assistantId) {

@@ -10,12 +10,13 @@ export async function getAdminAssistantById(assistantId) {
   return await apiRequest(`/assistants/${assistantId}`);
 }
 
-export async function updateAdminAssistant(assistantId, { title, modelId, isPublic }) {
+export async function updateAdminAssistant(assistantId, { title, modelId, assistantGroupId, isPublic }) {
   return await apiRequest(`/assistants/${assistantId}`, {
     method: "PATCH",
     body: JSON.stringify({
       title,
       model_id: modelId,
+      assistant_group_id: assistantGroupId || null,
       is_public: isPublic,
     }),
   });
@@ -27,12 +28,13 @@ export async function deleteAdminAssistant(assistantId) {
   });
 }
 
-export async function createAdminAssistant({ title, modelId, isPublic }) {
+export async function createAdminAssistant({ title, modelId, assistantGroupId, isPublic }) {
   return await apiRequest(endpoints.privateAssistants, {
     method: "POST",
     body: JSON.stringify({
       title,
       model_id: modelId,
+      assistant_group_id: assistantGroupId || null,
       is_public: isPublic,
     }),
   });

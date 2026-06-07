@@ -443,6 +443,18 @@
   min-height: 0;
 }
 
+.teacher-group-box {
+  display: grid;
+  gap: 10px;
+}
+
+.teacher-group-box__create {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
 .teacher-create-submit {
   justify-self: start;
   min-width: 230px;
@@ -664,6 +676,10 @@
   color: var(--color-text);
   line-height: 1.5;
   font: inherit;
+}
+
+.teacher-prompt-box__textarea--compact {
+  min-height: 150px;
 }
 
 .teacher-prompt-picker {
