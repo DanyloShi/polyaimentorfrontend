@@ -1,5 +1,7 @@
 @media (max-width: 900px) {
   .workspace {
+    min-height: 100dvh;
+    height: 100dvh;
     grid-template-rows: 60px minmax(0, 1fr);
   }
 
@@ -34,6 +36,7 @@
   .workspace__content {
     grid-template-columns: 1fr;
     grid-template-rows: 210px minmax(0, 1fr);
+    min-height: 0;
   }
 
   .assistant-sidebar {
@@ -56,7 +59,9 @@
 
   .chat-panel {
     min-height: 0;
+    height: 100%;
     grid-template-rows: 54px minmax(0, 1fr) auto;
+    overflow: hidden;
   }
 
   .chat-header {
@@ -64,11 +69,17 @@
   }
 
   .chat-panel__body {
-    padding: 18px 16px;
+    min-height: 0;
+    padding: 18px 16px 22px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .message-list {
     gap: 20px;
+    min-height: auto;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .message-bubble {
@@ -77,12 +88,20 @@
   }
 
   .chat-composer {
-    padding: 12px 16px;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     align-items: stretch;
     flex-direction: column;
+    background: var(--color-surface);
   }
 
   .chat-composer textarea {
+    width: 100%;
+  }
+
+  .chat-composer__field {
     width: 100%;
   }
 
@@ -208,6 +227,22 @@
 
   .teacher-chat-topbar {
     padding: 0 16px;
+  }
+
+  .teacher-chat-page {
+    height: calc(100dvh - 60px);
+    grid-template-rows: 58px minmax(0, 1fr);
+  }
+
+  .teacher-chat-full {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .teacher-chat-body {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .teacher-student-chat__messages--full {
