@@ -12,13 +12,13 @@ export default function AssistantSidebar({ assistants, activeAssistantId, onSele
 
       <div className="assistant-sidebar__scroll">
         <section className="assistant-section assistant-section--static">
-          <h2>Загальний асистент</h2>
+          <h2>Публічні асистенти</h2>
           <AssistantList assistants={publicAssistants} activeAssistantId={activeAssistantId} onSelectAssistant={onSelectAssistant} />
         </section>
 
         {isStudent ? (
           <section className="assistant-section">
-            <h2>Доступні асистенти</h2>
+            <h2>Доступні Вам асистенти</h2>
             <AssistantList assistants={privateAssistants} activeAssistantId={activeAssistantId} onSelectAssistant={onSelectAssistant} />
           </section>
         ) : (
