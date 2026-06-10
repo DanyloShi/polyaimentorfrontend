@@ -4,6 +4,8 @@ import AssistantGroupEditModal from "../components/assistants/AssistantGroupEdit
 import AssistantTreeList from "../components/assistants/AssistantTreeList.jsx";
 import DeleteAssistantModal from "../components/assistants/DeleteAssistantModal.jsx";
 import AssistantSettingsPanel from "../components/assistants/AssistantSettingsPanel.jsx";
+import AssistantShareModal from "../components/assistants/AssistantShareModal.jsx";
+import ShareGlyph from "../components/assistants/ShareGlyph.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
 import {
   addStudentToAdminAssistant,
@@ -77,6 +79,9 @@ function AdminAssistantsTab({ onNavigate }) {
   const [editingGroup, setEditingGroup] = useState(null);
   const [editingGroupPrompt, setEditingGroupPrompt] = useState("");
   const [savingGroup, setSavingGroup] = useState(false);
+
+  const [shareTarget, setShareTarget] = useState(null);
+  const [shareKind, setShareKind] = useState("assistant");
 
   const reloadAssistants = async (preferredAssistantId = null) => {
     const [loadedAssistants, loadedGroups] = await Promise.all([
@@ -270,6 +275,21 @@ function AdminAssistantsTab({ onNavigate }) {
     }
   };
 
+  const openAssistantShare = (assistant) => {
+    setShareKind("assistant");
+    setShareTarget(assistant);
+  };
+
+  const openGroupShare = (group) => {
+    setShareKind("group");
+    setShareTarget(group);
+  };
+
+  const closeShareModal = () => {
+    setShareTarget(null);
+    setShareKind("assistant");
+  };
+
   return (
     <div className="teacher-page__content">
       <aside className="teacher-sidebar">
@@ -293,15 +313,28 @@ function AdminAssistantsTab({ onNavigate }) {
             onSelectAssistant={selectAssistant}
             onDeleteAssistant={setDeletingAssistant}
             onEditGroup={openEditGroup}
+            onShareAssistant={openAssistantShare}
+            onShareGroup={openGroupShare}
           />
         </div>
       </aside>
 
       <main className="teacher-main">
-        <header className="teacher-main__header">
+        <header className="teacher-main__header teacher-main__header--split">
           <div>
             <h1>{activeAssistant?.title || "Оберіть асистента"}</h1>
           </div>
+
+          {activeAssistant ? (
+            <button
+              className="button button--dark teacher-share-button"
+              type="button"
+              onClick={() => openAssistantShare(activeAssistant)}
+            >
+              <ShareGlyph className="teacher-share-button__icon" />
+              Поширити
+            </button>
+          ) : null}
         </header>
 
         <div className="teacher-tabs" role="tablist" aria-label="Керування асистентом">
@@ -463,6 +496,11 @@ function AdminAssistantsTab({ onNavigate }) {
         titleText="Створити групу"
         onCancel={() => setCreatingGroup(null)}
         onSave={saveNewGroup}
+      />
+      <AssistantShareModal
+        target={shareTarget}
+        kind={shareKind}
+        onClose={closeShareModal}
       />
     </div>
   );

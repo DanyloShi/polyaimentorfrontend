@@ -926,3 +926,74 @@
   gap: 12px;
   margin-top: 24px;
 }
+
+.teacher-assistant-group__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.teacher-icon-button--share {
+  border-color: var(--color-surface-strong);
+  background: var(--color-surface-strong);
+  color: #fff;
+}
+
+.teacher-icon-button--share:hover {
+  background: #232320;
+  border-color: #232320;
+}
+
+.teacher-share-glyph {
+  width: 16px;
+  height: 16px;
+}
+
+.teacher-main__header--split {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.teacher-share-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 18px;
+}
+
+.teacher-share-button__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.teacher-share-modal {
+  width: min(520px, 100%);
+}
+
+.teacher-share-modal__field {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.teacher-share-modal__field span {
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.teacher-share-modal__field input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 0 12px;
+}
+
+.teacher-share-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}

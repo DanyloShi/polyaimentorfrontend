@@ -1,17 +1,19 @@
 import { Check, Copy, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-function buildAssistantShareLink(assistant) {
+function buildShareLink(target, kind) {
   const origin =
     typeof window !== "undefined" ? window.location.origin : "";
 
-  if (!assistant || !origin) {
+  if (!target || !origin) {
     return "";
   }
 
-  // Тимчасовий frontend-only формат.
-  // Коли з'явиться API, заміни це на реальне share-посилання.
-  return `${origin}/share/assistants/${assistant.id}`;
+  if (kind === "group") {
+    return `${origin}/share/assistant-groups/${target.id}`;
+  }
+
+  return `${origin}/share/assistants/${target.id}`;
 }
 
 async function copyText(value) {
@@ -28,16 +30,25 @@ async function copyText(value) {
   document.body.removeChild(input);
 }
 
-export default function AssistantShareModal({ assistant, onClose }) {
+export default function AssistantShareModal({
+  target,
+  kind = "assistant",
+  onClose,
+}) {
   const [copied, setCopied] = useState(false);
 
-  const shareLink = useMemo(() => buildAssistantShareLink(assistant), [assistant]);
+  const shareLink = useMemo(
+    () => buildShareLink(target, kind),
+    [target, kind],
+  );
+
+  const entityLabel = kind === "group" ? "групу асистентів" : "асистента";
 
   useEffect(() => {
     setCopied(false);
-  }, [assistant]);
+  }, [target, kind]);
 
-  if (!assistant) return null;
+  if (!target) return null;
 
   const handleCopy = async () => {
     if (!shareLink) return;
@@ -68,10 +79,10 @@ export default function AssistantShareModal({ assistant, onClose }) {
           <X size={18} />
         </button>
 
-        <h2 id="assistant-share-title">Поширити асистента</h2>
+        <h2 id="assistant-share-title">Поширити {entityLabel}</h2>
         <p>
-          Асистент <strong>{assistant.title}</strong>. Поки що це frontend-only
-          посилання без підключеного API.
+          <strong>{target.title}</strong>. Поки що це frontend-only посилання без
+          підключеного API.
         </p>
 
         <label className="teacher-share-modal__field">
