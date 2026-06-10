@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import AssistantGroupEditModal from "../components/assistants/AssistantGroupEditModal.jsx";
 import AssistantTreeList from "../components/assistants/AssistantTreeList.jsx";
 import DeleteAssistantModal from "../components/assistants/DeleteAssistantModal.jsx";
+import AssistantSettingsPanel from "../components/assistants/AssistantSettingsPanel.jsx";
 import AppHeader from "../components/header/AppHeader.jsx";
 import {
   addStudentToAssistant,
@@ -20,6 +21,12 @@ import {
   setAssistantGroupSystemPrompt,
   updateAssistantGroup,
   uploadAssistantDocument,
+  deleteTeacherAssistantSystemPrompt,
+  getTeacherAssistantById,
+  getTeacherAssistantSystemPrompt,
+  getTeacherPromptSourceAssistants,
+  setTeacherAssistantSystemPrompt,
+  updateTeacherAssistant,
 } from "../services/teacher.js";
 
 const statusLabels = {
@@ -34,7 +41,7 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
   const [assistants, setAssistants] = useState([]);
   const [assistantGroups, setAssistantGroups] = useState([]);
   const [activeAssistant, setActiveAssistant] = useState(null);
-  const [activePanel, setActivePanel] = useState("documents");
+  const [activePanel, setActivePanel] = useState("settings");
   const [documents, setDocuments] = useState([]);
   const [students, setStudents] = useState([]);
   const [documentsLoadError, setDocumentsLoadError] = useState("");
@@ -259,7 +266,6 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
               groups={assistantGroups}
               activeAssistantId={activeAssistant?.id || ""}
               onSelectAssistant={selectAssistant}
-              onEditAssistant={(assistant) => onNavigate(`/teacher/assistants/${assistant.id}/edit`)}
               onDeleteAssistant={setDeletingAssistant}
               onEditGroup={openEditGroup}
             />
@@ -274,16 +280,44 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
           </header>
 
           <div className="teacher-tabs" role="tablist" aria-label="Керування асистентом">
-            <button className={activePanel === "documents" ? "teacher-tab teacher-tab--active" : "teacher-tab"} type="button" onClick={() => setActivePanel("documents")}>
+            <button
+              className={activePanel === "settings" ? "teacher-tab teacher-tab--active" : "teacher-tab"}
+              type="button"
+              onClick={() => setActivePanel("settings")}
+            >
+              Налаштування
+            </button>
+            <button
+              className={activePanel === "documents" ? "teacher-tab teacher-tab--active" : "teacher-tab"}
+              type="button"
+              onClick={() => setActivePanel("documents")}
+            >
               Документи
             </button>
-            <button className={activePanel === "students" ? "teacher-tab teacher-tab--active" : "teacher-tab"} type="button" onClick={() => setActivePanel("students")}>
+            <button
+              className={activePanel === "students" ? "teacher-tab teacher-tab--active" : "teacher-tab"}
+              type="button"
+              onClick={() => setActivePanel("students")}
+            >
               Студенти
             </button>
           </div>
 
           <div className="teacher-panel-wrap">
-            {activePanel === "documents" ? (
+            {activePanel === "settings" ? (
+              <AssistantSettingsPanel
+                assistant={activeAssistant}
+                loadAssistant={getTeacherAssistantById}
+                updateAssistant={updateTeacherAssistant}
+                getAssistantSystemPrompt={getTeacherAssistantSystemPrompt}
+                setAssistantSystemPrompt={setTeacherAssistantSystemPrompt}
+                deleteAssistantSystemPrompt={deleteTeacherAssistantSystemPrompt}
+                getPromptSourceAssistants={getTeacherPromptSourceAssistants}
+                onSaved={async (savedAssistant) => {
+                  await reloadAssistants(savedAssistant.id);
+                }}
+              />
+            ) : activePanel === "documents" ? (
               <section className="teacher-panel">
                 <div className="teacher-panel__header">
                   <h2>Документи</h2>

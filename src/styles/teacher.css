@@ -834,3 +834,95 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.teacher-settings-panel {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.teacher-settings-panel__body {
+  min-height: 0;
+  overflow: auto;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 420px);
+  gap: 18px;
+  align-items: start;
+}
+
+.teacher-settings-panel__empty {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.teacher-settings-form {
+  min-width: 0;
+  align-content: start;
+  padding-top: 0;
+}
+
+.teacher-preview-chat--panel {
+  min-width: 0;
+  min-height: 100%;
+  height: 100%;
+}
+
+@media (max-width: 1280px) {
+  .teacher-settings-panel__body {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-preview-chat--panel {
+    min-height: 420px;
+  }
+}
+
+.teacher-icon-button--share {
+  border-color: var(--color-surface-strong);
+  background: var(--color-surface-strong);
+  color: #fff;
+}
+
+.teacher-icon-button--share:hover {
+  background: #232320;
+  border-color: #232320;
+}
+
+.teacher-share-glyph {
+  width: 16px;
+  height: 16px;
+}
+
+.teacher-share-modal {
+  width: min(520px, 100%);
+}
+
+.teacher-share-modal__field {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.teacher-share-modal__field span {
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.teacher-share-modal__field input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 0 12px;
+}
+
+.teacher-share-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
