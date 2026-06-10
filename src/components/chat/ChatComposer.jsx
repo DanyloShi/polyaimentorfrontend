@@ -21,7 +21,8 @@ export default function ChatComposer({ disabled, submitDisabled, onSendMessage }
 
     const nextHeight = Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT);
     textarea.style.height = `${Math.max(nextHeight, MIN_TEXTAREA_HEIGHT)}px`;
-    textarea.style.overflowY = textarea.scrollHeight > MAX_TEXTAREA_HEIGHT ? "auto" : "hidden";
+    textarea.style.overflowY =
+      textarea.scrollHeight > MAX_TEXTAREA_HEIGHT ? "auto" : "hidden";
   };
 
   const submitMessage = async () => {
@@ -71,9 +72,14 @@ export default function ChatComposer({ disabled, submitDisabled, onSendMessage }
         />
       </div>
 
-      <button className="button button--send" type="submit" disabled={disabled || submitDisabled || !value.trim()}>
+      <button
+        className="button button--send chat-composer__send"
+        type="submit"
+        disabled={disabled || submitDisabled || !value.trim()}
+        aria-label="Надіслати"
+      >
         <SendHorizontal size={18} />
-        Надіслати
+        <span className="chat-composer__send-label">Надіслати</span>
       </button>
     </form>
   );
