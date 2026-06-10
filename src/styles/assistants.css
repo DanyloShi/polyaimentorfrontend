@@ -106,3 +106,19 @@
   font-size: 15px;
   font-weight: 700;
 }
+
+.assistant-sidebar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.assistant-sidebar__close {
+  display: none;
+  flex: 0 0 auto;
+}
+
+.assistant-sidebar__backdrop {
+  display: none;
+}

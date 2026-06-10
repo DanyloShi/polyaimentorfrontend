@@ -6,7 +6,11 @@ import MessageList from "./MessageList.jsx";
 
 function ThinkingIndicator() {
   return (
-    <div className="thinking-indicator" aria-live="polite" aria-label="Асистент формує відповідь">
+    <div
+      className="thinking-indicator"
+      aria-live="polite"
+      aria-label="Асистент формує відповідь"
+    >
       <span />
       <span />
       <span />
@@ -14,7 +18,14 @@ function ThinkingIndicator() {
   );
 }
 
-export default function ChatPanel({ assistant, messages, loading, isAssistantThinking, onSendMessage }) {
+export default function ChatPanel({
+  assistant,
+  messages,
+  loading,
+  isAssistantThinking,
+  onSendMessage,
+  onOpenSidebar,
+}) {
   const bodyRef = useRef(null);
 
   useEffect(() => {
@@ -29,7 +40,7 @@ export default function ChatPanel({ assistant, messages, loading, isAssistantThi
 
   return (
     <main className="chat-panel">
-      <ChatHeader assistant={assistant} />
+      <ChatHeader assistant={assistant} onOpenSidebar={onOpenSidebar} />
 
       <div ref={bodyRef} className="chat-panel__body">
         {messages.length ? (

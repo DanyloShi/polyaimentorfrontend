@@ -997,3 +997,30 @@
   gap: 12px;
   margin-top: 24px;
 }
+
+.teacher-sidebar__backdrop {
+  display: none;
+}
+
+.teacher-sidebar__close {
+  display: none;
+}
+
+.teacher-main__title-wrap {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-main__title-wrap h1 {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.teacher-sidebar-toggle {
+  display: none;
+  flex: 0 0 auto;
+}

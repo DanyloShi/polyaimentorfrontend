@@ -1,4 +1,4 @@
-import { FolderPlus, Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
+import { FolderPlus, PanelLeft, Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import AssistantGroupEditModal from "../components/assistants/AssistantGroupEditModal.jsx";
 import AssistantTreeList from "../components/assistants/AssistantTreeList.jsx";
@@ -63,6 +63,8 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
 
   const [shareTarget, setShareTarget] = useState(null);
   const [shareKind, setShareKind] = useState("assistant");
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const reloadAssistants = async (preferredAssistantId = null) => {
     const [loadedAssistants, loadedGroups] = await Promise.all([
@@ -141,6 +143,7 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
 
   const selectAssistant = async (assistant) => {
     setActiveAssistant(assistant);
+    setSidebarOpen(false);
     await loadAssistantDetails(assistant);
   };
 
@@ -267,10 +270,26 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
       <AppHeader session={session} onLogout={onLogout} onNavigate={onNavigate} showPanelShortcut={false} />
 
       <div className="teacher-page__content">
-        <aside className="teacher-sidebar">
+        <button
+          className={`teacher-sidebar__backdrop ${sidebarOpen ? "teacher-sidebar__backdrop--open" : ""}`}
+          type="button"
+          aria-label="Закрити список асистентів"
+          onClick={() => setSidebarOpen(false)}
+        />
+
+        <aside className={`teacher-sidebar ${sidebarOpen ? "teacher-sidebar--open" : ""}`}>
           <div className="teacher-sidebar__header">
             <span>Мої асистенти</span>
             <div className="teacher-sidebar__actions">
+              <button
+                className="icon-button teacher-sidebar__close"
+                type="button"
+                aria-label="Закрити список асистентів"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <X size={18} />
+              </button>
+
               <button className="icon-button" type="button" aria-label="Створити групу" onClick={() => setCreatingGroup({ id: "new", title: "" })}>
                 <FolderPlus size={18} />
               </button>
@@ -296,7 +315,16 @@ export default function TeacherDashboardPage({ session, onLogout, onNavigate }) 
 
         <main className="teacher-main">
           <header className="teacher-main__header teacher-main__header--split">
-            <div>
+            <div className="teacher-main__title-wrap">
+              <button
+                className="icon-button teacher-sidebar-toggle"
+                type="button"
+                aria-label="Відкрити список асистентів"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <PanelLeft size={18} />
+              </button>
+
               <h1>{activeAssistant?.title || "Оберіть асистента"}</h1>
             </div>
 

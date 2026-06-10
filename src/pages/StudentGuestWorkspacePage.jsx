@@ -17,6 +17,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   const [sendingMessage, setSendingMessage] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [chatError, setChatError] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!chatError) return;
@@ -129,6 +130,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
   const handleSelectAssistant = (assistant) => {
     window.localStorage.setItem(ACTIVE_ASSISTANT_KEY, assistant.id);
     setActiveAssistant(assistant);
+    setSidebarOpen(false);
     loadConversationForAssistant(assistant);
   };
 
@@ -151,6 +153,8 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
           activeAssistantId={activeAssistant?.id}
           isStudent={canSeePrivateAssistants}
           onSelectAssistant={handleSelectAssistant}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
         />
         <ChatPanel
           assistant={activeAssistant}
@@ -158,6 +162,7 @@ export default function StudentGuestWorkspacePage({ session, onSessionChange, on
           isAssistantThinking={sendingMessage}
           messages={conversation?.messages || []}
           onSendMessage={handleSendMessage}
+          onOpenSidebar={() => setSidebarOpen(true)}
         />
       </div>
 

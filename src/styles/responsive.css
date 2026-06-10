@@ -126,16 +126,16 @@
   }
 
   .teacher-page__content {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    overflow: visible;
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
   }
 
   .teacher-sidebar {
-    border-right: 0;
-    border-bottom: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
+    border-bottom: 0;
     padding: 14px 16px;
-    max-height: 44vh;
+    max-height: none;
     overflow: hidden;
   }
 
@@ -151,7 +151,7 @@
   .teacher-main {
     min-height: 560px;
     grid-template-rows: 70px 54px minmax(0, 1fr);
-    overflow: visible;
+    overflow: hidden;
   }
 
   .teacher-main__header {
@@ -160,11 +160,24 @@
 
   .teacher-tabs {
     padding: 0 16px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .teacher-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .teacher-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 
   .teacher-panel-wrap {
     padding: 14px 16px;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .teacher-panel {
@@ -397,6 +410,166 @@
 
   .chat-composer__send-label {
     display: none;
+  }
+
+  .workspace__content {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .assistant-sidebar__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 39;
+    border: 0;
+    padding: 0;
+    background: rgba(17, 17, 15, 0.34);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .assistant-sidebar__backdrop--open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .assistant-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    width: min(86vw, 320px);
+    min-height: 100dvh;
+    max-height: 100dvh;
+    padding: 14px 14px 18px;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 0;
+    background: var(--color-surface);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    overflow: hidden;
+  }
+
+  .assistant-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .assistant-sidebar__close {
+    display: inline-flex;
+  }
+
+  .assistant-sidebar__scroll {
+    padding-right: 2px;
+  }
+
+  .chat-header {
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .chat-header__toggle {
+    display: inline-flex;
+  }
+
+  .chat-header h1 {
+    font-size: 17px;
+  }
+
+  .teacher-page__content {
+    position: relative;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .teacher-sidebar__backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 19;
+    border: 0;
+    padding: 0;
+    background: rgba(17, 17, 15, 0.34);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .teacher-sidebar__backdrop--open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .teacher-sidebar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 20;
+    width: min(86vw, 320px);
+    min-height: 100%;
+    height: 100%;
+    padding: 14px 14px 18px;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 0;
+    background: var(--color-surface);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    overflow: hidden;
+  }
+
+  .teacher-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .teacher-sidebar__close {
+    display: inline-flex;
+  }
+
+  .teacher-sidebar-toggle {
+    display: inline-flex;
+  }
+
+  .teacher-main {
+    min-height: 0;
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .teacher-main__header {
+    min-height: 64px;
+    padding: 10px 12px;
+  }
+
+  .teacher-main__header--split {
+    gap: 10px;
+  }
+
+  .teacher-main__title-wrap {
+    gap: 10px;
+  }
+
+  .teacher-main__title-wrap h1 {
+    font-size: 20px;
+  }
+
+  .teacher-share-button {
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .teacher-tabs {
+    padding: 0 12px;
+  }
+
+  .teacher-panel-wrap {
+    padding: 12px;
+  }
+
+  .teacher-panel {
+    min-height: 0;
+    height: 100%;
   }
 }
 
